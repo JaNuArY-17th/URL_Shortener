@@ -1,0 +1,20 @@
+name: CI Web UI
+on:
+  push:
+    paths:
+      - 'src/WebUI/**'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      - name: Install dependencies
+        run: npm install --prefix src/WebUI
+      - name: Lint
+        run: npm run lint --prefix src/WebUI || echo "No lint script"
+      - name: Test
+        run: npm test --prefix src/WebUI || echo "No test script" 

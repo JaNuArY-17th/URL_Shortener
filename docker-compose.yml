@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  # Define your services here
+  # Example:
+  # api-gateway:
+  #   build: ./src/ApiGateway
+  #   ports:
+  #     - "5000:80"
+  # ... 

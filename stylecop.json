@@ -1,0 +1,11 @@
+{
+  "settings": {
+    "indentation": {
+      "useTabs": false,
+      "indentationSize": 4
+    },
+    "orderingRules": {
+      "usingDirectivesPlacement": "outsideNamespace"
+    }
+  }
+} 
