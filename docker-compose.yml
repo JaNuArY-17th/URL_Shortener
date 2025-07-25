@@ -1,9 +1,147 @@
 version: '3.8'
 services:
-  # Define your services here
-  # Example:
-  # api-gateway:
-  #   build: ./src/ApiGateway
-  #   ports:
-  #     - "5000:80"
-  # ... 
+  # API Gateway - ASP.NET Core
+  api-gateway:
+    build: 
+      context: ./src/ApiGateway
+      dockerfile: Dockerfile
+    ports:
+      - "5000:80"
+    depends_on:
+      - identity-service
+      - url-shortener-service
+      - redirect-service
+      - analytics-service
+      - notification-service
+
+  # Identity Service - Node.js
+  identity-service:
+    build:
+      context: ./src/IdentityService
+      dockerfile: Dockerfile
+    ports:
+      - "5001:3000"
+    depends_on:
+      - mongodb
+      - rabbitmq
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/identity
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=your_jwt_secret
+      - PORT=3000
+
+  # URL Shortener Service - ASP.NET Core
+  url-shortener-service:
+    build:
+      context: ./src/UrlShortenerService
+      dockerfile: Dockerfile
+    ports:
+      - "5002:80"
+    depends_on:
+      - sqlserver
+      - rabbitmq
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=UrlShortener;User=sa;Password=Your_password123;
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
+
+  # Redirect Service - Node.js
+  redirect-service:
+    build:
+      context: ./src/RedirectService
+      dockerfile: Dockerfile
+    ports:
+      - "5003:3000"
+    depends_on:
+      - mongodb
+      - redis
+      - rabbitmq
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/redirect
+      - REDIS_URI=redis://redis:6379
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - PORT=3000
+
+  # Analytics Service - Node.js
+  analytics-service:
+    build:
+      context: ./src/AnalyticsService
+      dockerfile: Dockerfile
+    ports:
+      - "5004:3000"
+    depends_on:
+      - mongodb
+      - rabbitmq
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/analytics
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - PORT=3000
+
+  # Notification Service - Node.js
+  notification-service:
+    build:
+      context: ./src/NotificationService
+      dockerfile: Dockerfile
+    ports:
+      - "5005:3000"
+    depends_on:
+      - mongodb
+      - rabbitmq
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/notification
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - SMTP_HOST=smtp.example.com
+      - SMTP_PORT=587
+      - SMTP_USER=user
+      - SMTP_PASS=password
+      - PORT=3000
+
+  # Frontend Web UI - React
+  web-ui:
+    build:
+      context: ./src/WebUI
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-gateway
+
+  # Databases and Message Broker
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Your_password123
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  mongodb:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  sqlserver_data:
+  mongodb_data:
+  redis_data:
+  rabbitmq_data: 

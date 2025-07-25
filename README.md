@@ -21,9 +21,9 @@ flowchart LR
     ID -- "Event: UserCreated" --> NO
     RS -- "Cache (Redis)" --- RC["Redis"]
     AN -- "DB (MongoDB)" --- MDB["MongoDB"]
+    ID -- "DB (MongoDB)" --- MDB
+    RS -- "DB (MongoDB)" --- MDB
     US -- "DB (SQL)" --- SQL["SQL DB"]
-    ID -- "DB (SQL)" --- SQL
-    RS -- "DB (SQL)" --- SQL
 ```
 
 ## Service Descriptions
@@ -37,12 +37,13 @@ flowchart LR
   - Rate limiting, logging, CORS
 
 ### 2. Identity Service
-- **Tech:** ASP.NET Core, Identity
+- **Tech:** Node.js, Express, Passport.js
 - **Role:** User management, authentication (login/register), and authorization (roles, JWT).
 - **Features:**
   - Register, login, manage users
   - Issues JWT tokens
   - Publishes `UserCreatedEvent` to RabbitMQ
+- **Database:** MongoDB
 
 ### 3. Url Shortener Service
 - **Tech:** ASP.NET Core
@@ -51,14 +52,16 @@ flowchart LR
   - Generate unique short codes
   - Store mappings (short code <-> original URL)
   - Publishes `UrlCreatedEvent` to RabbitMQ
+- **Database:** SQL
 
 ### 4. Redirect Service
-- **Tech:** ASP.NET Core, Redis
+- **Tech:** Node.js, Express, Redis
 - **Role:** Handles redirection from short code to original URL, with caching.
 - **Features:**
   - Lookup short code in Redis cache, fallback to DB
   - Publishes `RedirectOccurredEvent` to RabbitMQ
   - Consumes `UrlCreatedEvent` for cache warm-up
+- **Database:** MongoDB with Redis caching
 
 ### 5. Analytics Service
 - **Tech:** Node.js, Express, MongoDB
