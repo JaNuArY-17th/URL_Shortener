@@ -4,11 +4,36 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { publishEvent } = require('../services/messagePublisher');
 const config = require('../config/config');
+const rateLimit = require('express-rate-limit');
 const { 
   registerValidationRules, 
   loginValidationRules, 
   validate 
 } = require('../middleware/validation');
+
+// Rate limiter for login attempts
+const loginLimiter = rateLimit({
+  windowMs: config.rateLimit.login.windowMs,
+  max: config.rateLimit.login.max,
+  message: {
+    status: 'error',
+    message: `Too many login attempts from this IP, please try again after ${Math.floor(config.rateLimit.login.windowMs / 60000)} minutes`
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+// Rate limiter for registration
+const registerLimiter = rateLimit({
+  windowMs: config.rateLimit.register.windowMs,
+  max: config.rateLimit.register.max,
+  message: {
+    status: 'error',
+    message: `Too many accounts created from this IP, please try again after ${Math.floor(config.rateLimit.register.windowMs / 60000)} minutes`
+  },
+  standardHeaders: true,
+  legacyHeaders: false
+});
 
 /**
  * @swagger
@@ -39,7 +64,7 @@ const {
  *               password:
  *                 type: string
  *                 format: password
- *                 example: password123
+ *                 example: Password123!
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -56,11 +81,14 @@ const {
  *                   $ref: '#/components/schemas/User'
  *       400:
  *         description: Invalid input or user already exists
+ *       429:
+ *         description: Too many registration attempts
  *       500:
  *         description: Server error
  */
 router.post(
   '/register',
+  registerLimiter,
   registerValidationRules,
   validate,
   async (req, res, next) => {
@@ -158,7 +186,7 @@ router.post(
  *               password:
  *                 type: string
  *                 format: password
- *                 example: password123
+ *                 example: Password123!
  *     responses:
  *       200:
  *         description: Login successful
@@ -173,11 +201,14 @@ router.post(
  *                   $ref: '#/components/schemas/User'
  *       400:
  *         description: Invalid credentials or input
+ *       429:
+ *         description: Too many login attempts
  *       500:
  *         description: Server error
  */
 router.post(
   '/login',
+  loginLimiter,
   loginValidationRules,
   validate,
   async (req, res, next) => {

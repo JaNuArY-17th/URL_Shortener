@@ -7,12 +7,14 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const config = require('./config/config');
 const logger = require('./services/logger');
+const addRequestId = require('./middleware/request-id');
 const { errorHandler, notFoundHandler } = require('./middleware/error-handler');
 const { swaggerDocs } = require('./swagger');
 
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const healthRoutes = require('./routes/health');
 
 // Create Express app
 const app = express();
@@ -25,14 +27,34 @@ mongoose.connect(config.db.mongodb.uri)
     process.exit(1);
   });
 
+// Detailed CORS configuration
+const corsOptions = {
+  origin: config.cors.origins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID'],
+  exposedHeaders: ['X-Request-ID', 'X-Total-Count'],
+  credentials: true,
+  maxAge: 86400 // 24 hours
+};
+
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(addRequestId);
 
-// Request logging
-app.use(morgan('combined', { stream: logger.stream }));
+// Request logging with request ID
+app.use(morgan((tokens, req, res) => {
+  return [
+    `[${req.id}]`,
+    tokens.method(req, res),
+    tokens.url(req, res),
+    tokens.status(req, res),
+    tokens.res(req, res, 'content-length'), '-',
+    tokens['response-time'](req, res), 'ms'
+  ].join(' ');
+}, { stream: logger.stream }));
 
 // Passport middleware
 app.use(passport.initialize());
@@ -43,16 +65,7 @@ require('./config/passport')(passport);
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ 
-    status: 'ok', 
-    service: 'auth-service',
-    version: '1.0.0',
-    timestamp: new Date().toISOString()
-  });
-});
+app.use('/api/health', healthRoutes);
 
 // Setup Swagger
 swaggerDocs(app);

@@ -15,6 +15,17 @@ const validate = (req, res, next) => {
 };
 
 /**
+ * Password complexity validation
+ */
+const passwordComplexityRules = [
+  body('password')
+    .isLength({ min: 8 }).withMessage('Password must be at least 8 characters')
+    .matches(/[A-Z]/).withMessage('Password must contain at least one uppercase letter')
+    .matches(/[0-9]/).withMessage('Password must contain at least one number')
+    .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('Password must contain at least one special character')
+];
+
+/**
  * Validation rules for registration
  */
 const registerValidationRules = [
@@ -26,8 +37,7 @@ const registerValidationRules = [
     .trim()
     .isEmail().withMessage('Please enter a valid email')
     .normalizeEmail(),
-  body('password')
-    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+  ...passwordComplexityRules
 ];
 
 /**
@@ -64,8 +74,7 @@ const updateUserValidationRules = [
 const changePasswordValidationRules = [
   body('currentPassword')
     .not().isEmpty().withMessage('Current password is required'),
-  body('newPassword')
-    .isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+  ...passwordComplexityRules.map(rule => rule.withMessage('New password ' + rule.message))
 ];
 
 module.exports = {
@@ -73,5 +82,6 @@ module.exports = {
   registerValidationRules,
   loginValidationRules,
   updateUserValidationRules,
-  changePasswordValidationRules
+  changePasswordValidationRules,
+  passwordComplexityRules
 }; 
