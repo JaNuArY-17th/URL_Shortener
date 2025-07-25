@@ -1,0 +1,22 @@
+{"level":"info","message":"Email service disabled by configuration","service":"notification-service","timestamp":"2025-07-26 03:20:05"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-26 03:20:05"}
+{"level":"info","message":"Socket.IO is disabled by configuration","service":"notification-service","timestamp":"2025-07-26 03:20:05"}
+{"level":"info","message":"API Documentation available at http://localhost:3003/api-docs","service":"notification-service","timestamp":"2025-07-26 03:20:06"}
+{"level":"info","message":"Notification Service running on port 3003","service":"notification-service","timestamp":"2025-07-26 03:20:06"}
+{"level":"info","message":"API Documentation available at http://localhost:3003/api-docs","service":"notification-service","timestamp":"2025-07-26 03:20:06"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 03:20:06"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 5 seconds (attempt 1/20)...","service":"notification-service","timestamp":"2025-07-26 03:20:06"}
+{"level":"info","message":"MongoDB connected","service":"notification-service","timestamp":"2025-07-26 03:20:06"}
+{"level":"info","message":"[2cdbbe1e-fe44-4733-b220-626a86d7b362] GET /api-docs 301 158 - 3.707 ms","service":"notification-service","timestamp":"2025-07-26 03:20:10"}
+{"level":"info","message":"[a0177d2c-19cb-4fe6-8f86-50c8166821c8] GET /api-docs/ 200 3103 - 6.446 ms","service":"notification-service","timestamp":"2025-07-26 03:20:10"}
+{"level":"info","message":"[889ab5e9-7dfb-44b7-9986-c2566be12cea] GET /api-docs/swagger-ui-init.js 200 25194 - 0.542 ms","service":"notification-service","timestamp":"2025-07-26 03:20:10"}
+{"level":"info","message":"[a8093e17-3ea4-4486-b90f-405539307324] GET /api-docs/swagger-ui.css 200 155212 - 26.829 ms","service":"notification-service","timestamp":"2025-07-26 03:20:11"}
+{"level":"info","message":"[bf5975b4-46dc-4dce-b62a-2851fd29df19] GET /api-docs/swagger-ui-standalone-preset.js 200 229223 - 19.545 ms","service":"notification-service","timestamp":"2025-07-26 03:20:11"}
+{"level":"info","message":"[7dc57613-5379-4f05-b4e0-27d2bebd41ed] GET /api-docs/swagger-ui-bundle.js 200 1485855 - 23.966 ms","service":"notification-service","timestamp":"2025-07-26 03:20:11"}
+{"level":"info","message":"[cd73c2bd-8e74-47ac-9b6a-2a2be3eaf520] GET /api-docs/favicon-32x32.png 200 628 - 1.117 ms","service":"notification-service","timestamp":"2025-07-26 03:20:11"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-26 03:20:11"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 03:20:11"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 9 seconds (attempt 2/20)...","service":"notification-service","timestamp":"2025-07-26 03:20:11"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-26 03:20:20"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 03:20:20"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 12 seconds (attempt 3/20)...","service":"notification-service","timestamp":"2025-07-26 03:20:20"}

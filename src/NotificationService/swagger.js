@@ -1,5 +1,7 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const path = require('path');
+const express = require('express');
 const config = require('./config/config');
 const logger = require('./services/logger');
 
@@ -27,6 +29,10 @@ const options = {
       {
         url: `http://localhost:${config.server.port}`,
         description: 'Development Server'
+      },
+      {
+        url: 'https://notificationservice-83qo.onrender.com',
+        description: 'Production Server'
       }
     ],
     components: {
@@ -221,6 +227,18 @@ const swaggerDocs = (app) => {
   // Initialize swagger-jsdoc
   const swaggerSpec = swaggerJsdoc(options);
   
+  // Explicitly serve swagger-ui static files with correct MIME types
+  const swaggerUiAssetsPath = require('swagger-ui-dist').getAbsoluteFSPath();
+  app.use('/api-docs/swagger-ui', express.static(swaggerUiAssetsPath, {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (path.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+      }
+    }
+  }));
+  
   // Configure Swagger UI
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     explorer: true,
@@ -242,7 +260,16 @@ const swaggerDocs = (app) => {
     res.send(swaggerSpec);
   });
   
-  logger.info(`API Documentation available at http://localhost:${config.server.port}/api-docs`);
+  // Health check endpoint specifically for Swagger
+  app.get('/api-docs/health', (req, res) => {
+    res.status(200).json({ status: 'ok', message: 'Swagger UI is healthy' });
+  });
+  
+  const serverUrl = process.env.NODE_ENV === 'production' 
+    ? 'https://notificationservice-83qo.onrender.com' 
+    : `http://localhost:${config.server.port}`;
+  
+  logger.info(`API Documentation available at ${serverUrl}/api-docs`);
 };
 
 module.exports = { swaggerDocs }; 
