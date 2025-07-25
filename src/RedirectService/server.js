@@ -18,7 +18,7 @@ const { swaggerDocs } = require('./swagger');
 const redirectRoutes = require('./routes/redirect');
 const healthRoutes = require('./routes/health');
 const urlManagementRoutes = require('./routes/url-management');
-const analyticsRoutes = require('./routes/analytics');
+// Loại bỏ import analyticsRoutes
 
 // Create Express app
 const app = express();
@@ -172,7 +172,7 @@ swaggerDocs(app);
 // API Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/urls', urlManagementRoutes);
-app.use('/api/analytics', analyticsRoutes);
+// Loại bỏ /api/analytics route
 
 // Add metrics endpoint
 app.get('/api/metrics', (req, res) => {
