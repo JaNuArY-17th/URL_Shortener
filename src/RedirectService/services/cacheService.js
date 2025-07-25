@@ -1,4 +1,5 @@
 const Redis = require('ioredis');
+const config = require('../config/config');
 let redisClient = null;
 
 /**
@@ -6,7 +7,7 @@ let redisClient = null;
  */
 const initRedisClient = async () => {
   try {
-    redisClient = new Redis(process.env.REDIS_URI || 'redis://localhost:6379');
+    redisClient = new Redis(config.redis.uri);
     
     redisClient.on('error', (err) => {
       console.error('Redis error:', err);
@@ -45,7 +46,7 @@ const getUrlFromCache = async (shortCode) => {
  * @param {number} expireSeconds Cache expiration in seconds
  * @returns {Promise<boolean>} success or failure
  */
-const setUrlInCache = async (shortCode, originalUrl, expireSeconds = 86400) => {
+const setUrlInCache = async (shortCode, originalUrl, expireSeconds = config.redis.cacheExpiry) => {
   if (!redisClient) {
     return false;
   }

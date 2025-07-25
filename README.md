@@ -10,7 +10,7 @@ flowchart LR
         U1["Web UI (React)"]
     end
     U1 -- "REST API" --> AG["API Gateway (Ocelot)"]
-    AG -- "Auth, User" --> ID["Identity Service"]
+    AG -- "Auth, User" --> ID["Auth Service"]
     AG -- "Shorten URL" --> US["Url Shortener Service"]
     AG -- "Redirect" --> RS["Redirect Service"]
     AG -- "Analytics" --> AN["Analytics Service"]
@@ -36,7 +36,7 @@ flowchart LR
   - Authentication/authorization delegation
   - Rate limiting, logging, CORS
 
-### 2. Identity Service
+### 2. Auth Service
 - **Tech:** Node.js, Express, Passport.js
 - **Role:** User management, authentication (login/register), and authorization (roles, JWT).
 - **Features:**

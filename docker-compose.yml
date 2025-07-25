@@ -8,24 +8,23 @@ services:
     ports:
       - "5000:80"
     depends_on:
-      - identity-service
+      - auth-service
       - url-shortener-service
       - redirect-service
       - analytics-service
       - notification-service
 
-  # Identity Service - Node.js
-  identity-service:
+  # Auth Service - Node.js
+  auth-service:
     build:
-      context: ./src/IdentityService
+      context: ./src/AuthService
       dockerfile: Dockerfile
     ports:
       - "5001:3000"
     depends_on:
-      - mongodb
       - rabbitmq
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/identity
+      - MONGODB_URI=mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/auth?retryWrites=true&w=majority&appName=Cluster1
       - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
       - JWT_SECRET=your_jwt_secret
       - PORT=3000
@@ -54,11 +53,10 @@ services:
     ports:
       - "5003:3000"
     depends_on:
-      - mongodb
       - redis
       - rabbitmq
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/redirect
+      - MONGODB_URI=mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/redirect?retryWrites=true&w=majority&appName=Cluster1
       - REDIS_URI=redis://redis:6379
       - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
       - PORT=3000
@@ -71,10 +69,9 @@ services:
     ports:
       - "5004:3000"
     depends_on:
-      - mongodb
       - rabbitmq
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/analytics
+      - MONGODB_URI=mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/analytics?retryWrites=true&w=majority&appName=Cluster1
       - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
       - PORT=3000
 
@@ -86,10 +83,9 @@ services:
     ports:
       - "5005:3000"
     depends_on:
-      - mongodb
       - rabbitmq
     environment:
-      - MONGODB_URI=mongodb://mongodb:27017/notification
+      - MONGODB_URI=mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/notification?retryWrites=true&w=majority&appName=Cluster1
       - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
       - SMTP_HOST=smtp.example.com
       - SMTP_PORT=587
@@ -118,13 +114,6 @@ services:
     volumes:
       - sqlserver_data:/var/opt/mssql
 
-  mongodb:
-    image: mongo:6
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongodb_data:/data/db
-
   redis:
     image: redis:alpine
     ports:
@@ -142,6 +131,5 @@ services:
 
 volumes:
   sqlserver_data:
-  mongodb_data:
   redis_data:
   rabbitmq_data: 

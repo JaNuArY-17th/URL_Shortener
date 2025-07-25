@@ -1,4 +1,6 @@
 const amqp = require('amqplib');
+const config = require('../config/config');
+const logger = require('./logger');
 
 // RabbitMQ connection
 let channel = null;
@@ -8,8 +10,7 @@ const connectRabbitMQ = async () => {
   if (channel) return channel;
 
   try {
-    const connectionString = process.env.RABBITMQ_URI || 'amqp://localhost:5672';
-    const connection = await amqp.connect(connectionString);
+    const connection = await amqp.connect(config.rabbitmq.uri);
     channel = await connection.createChannel();
     
     // Exchange for event publishing
@@ -17,10 +18,10 @@ const connectRabbitMQ = async () => {
       durable: true
     });
     
-    console.log('Connected to RabbitMQ');
+    logger.info('Connected to RabbitMQ');
     return channel;
   } catch (error) {
-    console.error('Error connecting to RabbitMQ:', error.message);
+    logger.error('Error connecting to RabbitMQ:', error.message);
     return null;
   }
 };
@@ -40,7 +41,7 @@ const publishEvent = async (eventName, data) => {
       eventName,
       data,
       timestamp: new Date().toISOString(),
-      source: 'identity-service'
+      source: 'auth-service'
     };
 
     const routingKey = `event.${eventName.toLowerCase()}`;
@@ -51,17 +52,20 @@ const publishEvent = async (eventName, data) => {
       { persistent: true }
     );
     
-    console.log(`Published event ${eventName} with routing key ${routingKey}`);
+    logger.info(`Published event ${eventName} with routing key ${routingKey}`, { 
+      eventName, 
+      routingKey
+    });
     return true;
   } catch (error) {
-    console.error(`Error publishing event ${eventName}:`, error);
+    logger.error(`Error publishing event ${eventName}:`, error);
     return false;
   }
 };
 
 // Initialize connection
 connectRabbitMQ().catch(err => {
-  console.error('Failed to establish initial RabbitMQ connection:', err);
+  logger.error('Failed to establish initial RabbitMQ connection:', err);
 });
 
 module.exports = {
