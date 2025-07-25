@@ -1,6 +1,7 @@
 const amqp = require('amqplib');
 const { setUrlInCache, deleteUrlFromCache } = require('./cacheService');
 const Url = require('../models/Url');
+const config = require('../config/config');
 
 // RabbitMQ connection
 let channel = null;
@@ -10,20 +11,19 @@ let channel = null;
  */
 const connectRabbitMQ = async () => {
   try {
-    const connectionString = process.env.RABBITMQ_URI || 'amqp://localhost:5672';
-    const connection = await amqp.connect(connectionString);
+    const connection = await amqp.connect(config.rabbitmq.uri);
     channel = await connection.createChannel();
     
     // Set up exchange
-    await channel.assertExchange('url-shortener-events', 'topic', { durable: true });
+    await channel.assertExchange(config.rabbitmq.exchanges.events, 'topic', { durable: true });
     
     // Set up queues
-    const { queue: urlCreatedQueue } = await channel.assertQueue('redirect-service-url-created', { 
+    const { queue: urlCreatedQueue } = await channel.assertQueue(config.rabbitmq.queues.urlCreated, { 
       durable: true 
     });
     
     // Bind queues to exchange with routing patterns
-    await channel.bindQueue(urlCreatedQueue, 'url-shortener-events', 'event.urlcreatedevent');
+    await channel.bindQueue(urlCreatedQueue, config.rabbitmq.exchanges.events, 'event.urlcreatedevent');
     
     // Consume UrlCreatedEvent to warm up the cache
     channel.consume(urlCreatedQueue, async (msg) => {
@@ -78,7 +78,7 @@ const publishRedirectEvent = async (eventData) => {
     };
     
     channel.publish(
-      'url-shortener-events',
+      config.rabbitmq.exchanges.events,
       'event.redirectoccurredevent',
       Buffer.from(JSON.stringify(event)),
       { persistent: true }

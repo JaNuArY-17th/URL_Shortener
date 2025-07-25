@@ -7,12 +7,13 @@ const redirectRoutes = require('./routes/redirect');
 const healthRoutes = require('./routes/health');
 const { initRedisClient } = require('./services/cacheService');
 const { connectRabbitMQ } = require('./services/messageHandler');
+const config = require('./config/config');
 
 // Create Express app
 const app = express();
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/redirect')
+mongoose.connect(config.db.mongodb.uri)
   .then(() => console.log('MongoDB connected'))
   .catch(err => {
     console.error('MongoDB connection error:', err);
@@ -44,10 +45,10 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ 
     message: 'Internal Server Error',
-    error: process.env.NODE_ENV === 'development' ? err.message : {}
+    error: config.server.nodeEnv === 'development' ? err.message : {}
   });
 });
 
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = config.server.port;
 app.listen(PORT, () => console.log(`Redirect Service running on port ${PORT}`)); 
