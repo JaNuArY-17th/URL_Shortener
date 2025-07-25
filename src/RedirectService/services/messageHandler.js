@@ -2,6 +2,7 @@ const amqp = require('amqplib');
 const config = require('../config/config');
 const logger = require('./logger');
 const cacheService = require('./cacheService');
+const Url = require('../models/Url');
 
 let connection = null;
 let channel = null;
@@ -129,10 +130,39 @@ const startConsuming = async () => {
             routingKey: msg.fields.routingKey
           });
           
-          // Cache the URL
-          if (content.shortCode && content.originalUrl) {
-            await cacheService.cacheUrl(content.shortCode, content.originalUrl);
-            logger.info('URL cached successfully', { shortCode: content.shortCode });
+          // Lưu URL vào database
+          try {
+            // Kiểm tra xem URL đã tồn tại chưa
+            const existingUrl = await Url.findOne({ shortCode: content.shortCode });
+            
+            if (!existingUrl) {
+              // Tạo URL mới trong database
+              const newUrl = new Url({
+                shortCode: content.shortCode,
+                originalUrl: content.originalUrl,
+                userId: content.userId || null,
+                expiresAt: content.expiresAt ? new Date(content.expiresAt) : null,
+                metadata: content.metadata || {}
+              });
+              
+              await newUrl.save();
+              logger.info('URL đã được lưu vào database', { shortCode: content.shortCode });
+            } else {
+              logger.warn('URL đã tồn tại trong database', { shortCode: content.shortCode });
+            }
+            
+            // Cache the URL
+            if (content.shortCode && content.originalUrl) {
+              await cacheService.cacheUrl(content.shortCode, content.originalUrl);
+              logger.info('URL cached successfully', { shortCode: content.shortCode });
+            }
+          } catch (dbError) {
+            logger.error('Lỗi khi lưu URL vào database:', {
+              error: dbError.message,
+              shortCode: content.shortCode
+            });
+            // Nếu lỗi khi lưu vào database nhưng vẫn cần acknowledge message
+            // để tránh việc message bị requeue vô hạn
           }
           
           // Acknowledge message
