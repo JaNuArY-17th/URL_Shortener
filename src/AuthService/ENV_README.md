@@ -21,6 +21,15 @@ JWT_EXPIRES_IN=24h
 # RabbitMQ Connection
 RABBITMQ_URI=amqp://localhost:5672
 
+# CORS Configuration
+CORS_ORIGINS=http://localhost:8080,http://localhost:3000
+
+# Rate Limiting
+LOGIN_RATE_LIMIT_MAX=5
+LOGIN_RATE_LIMIT_WINDOW_MS=900000
+REGISTER_RATE_LIMIT_MAX=3
+REGISTER_RATE_LIMIT_WINDOW_MS=3600000
+
 # Logging
 LOG_LEVEL=info
 ```
@@ -43,6 +52,15 @@ LOG_LEVEL=info
 ### RabbitMQ Connection
 - **RABBITMQ_URI**: URI kết nối đến RabbitMQ
 
+### CORS Configuration
+- **CORS_ORIGINS**: Danh sách các domain được phép truy cập API, phân cách bởi dấu phẩy
+
+### Rate Limiting
+- **LOGIN_RATE_LIMIT_MAX**: Số lượng request đăng nhập tối đa trong một khoảng thời gian
+- **LOGIN_RATE_LIMIT_WINDOW_MS**: Khoảng thời gian cho rate limit đăng nhập (ms)
+- **REGISTER_RATE_LIMIT_MAX**: Số lượng request đăng ký tối đa trong một khoảng thời gian
+- **REGISTER_RATE_LIMIT_WINDOW_MS**: Khoảng thời gian cho rate limit đăng ký (ms)
+
 ### Logging
 - **LOG_LEVEL**: Mức độ chi tiết của log (error, warn, info, http, verbose, debug, silly)
 
@@ -57,6 +75,9 @@ environment:
   - MONGODB_URI=mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/auth?retryWrites=true&w=majority&appName=Cluster1
   - JWT_SECRET=your_jwt_secret
   - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+  - CORS_ORIGINS=https://your-frontend.com,https://admin.your-frontend.com
+  - LOGIN_RATE_LIMIT_MAX=5
+  - LOGIN_RATE_LIMIT_WINDOW_MS=900000
 ```
 
 ## Cấu hình trong code

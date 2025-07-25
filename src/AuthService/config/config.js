@@ -17,6 +17,21 @@ const config = {
   rabbitmq: {
     uri: process.env.RABBITMQ_URI || 'amqp://localhost:5672'
   },
+  cors: {
+    origins: process.env.CORS_ORIGINS ? 
+      process.env.CORS_ORIGINS.split(',') : 
+      ['http://localhost:8080', 'http://localhost:3000']
+  },
+  rateLimit: {
+    login: {
+      max: parseInt(process.env.LOGIN_RATE_LIMIT_MAX) || 5,
+      windowMs: parseInt(process.env.LOGIN_RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000 // 15 minutes
+    },
+    register: {
+      max: parseInt(process.env.REGISTER_RATE_LIMIT_MAX) || 3,
+      windowMs: parseInt(process.env.REGISTER_RATE_LIMIT_WINDOW_MS) || 60 * 60 * 1000 // 1 hour
+    }
+  },
   logging: {
     level: process.env.LOG_LEVEL || 'info'
   }
