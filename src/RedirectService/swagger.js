@@ -1,7 +1,7 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const config = require('./config/config');
-const packageJson = require('./package.json');
+const logger = require('./services/logger');
 
 /**
  * Swagger definition
@@ -10,9 +10,9 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Redirect Service API',
-      version: packageJson.version,
-      description: 'API for the URL Shortener Redirect Service',
+      title: 'URL Shortener - Redirect Service API',
+      version: '1.0.0',
+      description: 'API documentation for the Redirect Service of URL Shortener',
       license: {
         name: 'MIT',
         url: 'https://opensource.org/licenses/MIT'
@@ -25,23 +25,11 @@ const options = {
     },
     servers: [
       {
-        url: '/',
-        description: 'Current host'
+        url: `http://localhost:${config.server.port}`,
+        description: 'Development Server'
       }
     ],
     components: {
-      securitySchemes: {
-        bearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT'
-        },
-        apiKeyAuth: {
-          type: 'apiKey',
-          in: 'header',
-          name: 'X-API-KEY'
-        }
-      },
       schemas: {
         Error: {
           type: 'object',
@@ -79,32 +67,38 @@ const options = {
             active: {
               type: 'boolean',
               description: 'Whether the URL is active',
-              default: true
+              default: true,
+              example: true
             },
             createdAt: {
               type: 'string',
               format: 'date-time',
-              description: 'Creation timestamp'
+              description: 'Creation timestamp',
+              example: '2023-06-23T11:21:15.000Z'
             },
             lastAccessedAt: {
               type: 'string',
               format: 'date-time',
-              description: 'Last access timestamp'
+              description: 'Last access timestamp',
+              example: '2023-06-23T11:22:15.000Z'
             },
             expiresAt: {
               type: 'string',
               format: 'date-time',
-              description: 'Expiration timestamp'
+              description: 'Expiration timestamp',
+              example: '2024-06-23T11:21:15.000Z'
             },
             clicks: {
               type: 'integer',
               description: 'Number of clicks',
-              default: 0
+              default: 0,
+              example: 42
             },
             uniqueVisitors: {
               type: 'integer',
               description: 'Number of unique visitors',
-              default: 0
+              default: 0,
+              example: 24
             },
             metadata: {
               type: 'object',
@@ -128,6 +122,34 @@ const options = {
             }
           }
         },
+        AnalyticsSummary: {
+          type: 'object',
+          properties: {
+            totalClicks: {
+              type: 'integer',
+              example: 1250
+            },
+            uniqueVisitors: {
+              type: 'integer',
+              example: 820
+            },
+            clicksPerUrl: {
+              type: 'number',
+              format: 'float',
+              example: 12.5
+            }
+          }
+        },
+        RedirectResponse: {
+          type: 'object',
+          properties: {
+            originalUrl: {
+              type: 'string',
+              format: 'uri',
+              example: 'https://example.com/very/long/url'
+            }
+          }
+        },
         GeoRule: {
           type: 'object',
           properties: {
@@ -148,31 +170,156 @@ const options = {
             }
           }
         },
-        AnalyticsSummary: {
+        UrlCreationResponse: {
           type: 'object',
           properties: {
-            totalClicks: {
-              type: 'integer',
-              example: 1250
+            shortCode: {
+              type: 'string',
+              example: 'abc123'
             },
-            uniqueVisitors: {
-              type: 'integer',
-              example: 820
+            shortUrl: {
+              type: 'string',
+              example: 'http://localhost:3000/abc123'
             },
-            clicksPerUrl: {
+            originalUrl: {
+              type: 'string',
+              example: 'https://example.com/very/long/url'
+            },
+            expiresAt: {
+              type: 'string',
+              format: 'date-time',
+              example: '2024-06-23T11:21:15.000Z'
+            }
+          }
+        },
+        HealthResponse: {
+          type: 'object',
+          properties: {
+            status: {
+              type: 'string',
+              example: 'ok'
+            },
+            timestamp: {
+              type: 'string',
+              format: 'date-time',
+              example: '2023-06-23T11:21:15.000Z'
+            },
+            services: {
+              type: 'object',
+              properties: {
+                mongodb: {
+                  type: 'string',
+                  example: 'connected'
+                },
+                redis: {
+                  type: 'string',
+                  example: 'connected'
+                },
+                rabbitmq: {
+                  type: 'string',
+                  example: 'connected'
+                }
+              }
+            }
+          }
+        },
+        StatsResponse: {
+          type: 'object',
+          properties: {
+            uptime: {
               type: 'number',
-              format: 'float',
-              example: 12.5
+              example: 3600
+            },
+            memory: {
+              type: 'object',
+              properties: {
+                rss: {
+                  type: 'string',
+                  example: '50MB'
+                },
+                heapTotal: {
+                  type: 'string',
+                  example: '30MB'
+                },
+                heapUsed: {
+                  type: 'string',
+                  example: '20MB'
+                }
+              }
+            },
+            cache: {
+              type: 'object',
+              properties: {
+                hits: {
+                  type: 'number',
+                  example: 1000
+                },
+                misses: {
+                  type: 'number',
+                  example: 250
+                },
+                ratio: {
+                  type: 'string',
+                  example: '80%'
+                }
+              }
+            }
+          }
+        }
+      },
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
+        }
+      },
+      responses: {
+        BadRequest: {
+          description: 'Invalid input parameters',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              },
+              example: {
+                status: 'error',
+                message: 'Invalid input parameters'
+              }
+            }
+          }
+        },
+        NotFound: {
+          description: 'Resource not found',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              },
+              example: {
+                status: 'error',
+                message: 'URL not found'
+              }
+            }
+          }
+        },
+        ServerError: {
+          description: 'Internal server error',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: '#/components/schemas/Error'
+              },
+              example: {
+                status: 'error',
+                message: 'An unexpected error occurred'
+              }
             }
           }
         }
       }
     },
-    security: [
-      {
-        apiKeyAuth: []
-      }
-    ],
+    security: [],
     tags: [
       {
         name: 'Redirect',
@@ -189,14 +336,13 @@ const options = {
       {
         name: 'Health',
         description: 'Health check endpoints'
-      },
-      {
-        name: 'Metrics',
-        description: 'Service metrics and monitoring'
       }
     ]
   },
-  apis: ['./routes/*.js', './models/*.js']
+  apis: [
+    './routes/*.js',
+    './models/*.js'
+  ]
 };
 
 /**
@@ -211,11 +357,14 @@ const swaggerDocs = (app) => {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     explorer: true,
     customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: "URL Shortener Redirect Service API",
+    customSiteTitle: 'URL Shortener Redirect Service API',
     swaggerOptions: {
       tagsSorter: 'alpha',
       operationsSorter: 'alpha',
-      docExpansion: 'none'
+      docExpansion: 'none',
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      filter: true
     }
   }));
   
@@ -225,9 +374,7 @@ const swaggerDocs = (app) => {
     res.send(swaggerSpec);
   });
   
-  // Log Swagger UI availability
-  const port = config.server.port;
-  console.log(`API Documentation available at http://localhost:${port}/api-docs`);
+  logger.info(`API Documentation available at http://localhost:${config.server.port}/api-docs`);
 };
 
 module.exports = { swaggerDocs }; 
