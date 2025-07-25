@@ -166,7 +166,10 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+// Setup Swagger (PHẢI ĐƯỢC ĐẶT TRƯỚC router CHÍNH)
+swaggerDocs(app);
+
+// API Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/urls', urlManagementRoutes);
 app.use('/api/analytics', analyticsRoutes);
@@ -181,11 +184,8 @@ app.get('/api/metrics', (req, res) => {
   });
 });
 
-// Main redirect route for short URLs - must come last to handle all other paths
+// Main redirect route for short URLs - PHẢI ĐẶT CUỐI CÙNG để xử lý các path còn lại
 app.use('/', redirectRoutes);
-
-// Setup Swagger
-swaggerDocs(app);
 
 // 404 handler
 app.use(notFoundHandler);
