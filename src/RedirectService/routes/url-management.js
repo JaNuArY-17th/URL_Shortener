@@ -8,6 +8,109 @@ const { v4: uuidv4 } = require('uuid');
 /**
  * @swagger
  * /api/urls:
+ *   post:
+ *     summary: Lưu URL mới
+ *     description: Lưu URL mới từ UrlShortenerService vào database
+ *     tags:
+ *       - URL Management
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - shortCode
+ *               - originalUrl
+ *             properties:
+ *               shortCode:
+ *                 type: string
+ *                 description: Mã rút gọn đã được tạo từ UrlShortenerService
+ *               originalUrl:
+ *                 type: string
+ *                 description: URL gốc cần rút gọn
+ *               userId:
+ *                 type: string
+ *                 description: ID của người dùng tạo URL
+ *               expiresAt:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Thời gian hết hạn của URL (tùy chọn)
+ *               metadata:
+ *                 type: object
+ *                 description: Thông tin mở rộng của URL (tùy chọn)
+ *                 properties:
+ *                   title:
+ *                     type: string
+ *                   description:
+ *                     type: string
+ *                   tags:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *     responses:
+ *       201:
+ *         description: URL đã được lưu thành công
+ *       400:
+ *         description: Dữ liệu không hợp lệ
+ *       409:
+ *         description: URL với shortCode đã tồn tại
+ *       500:
+ *         description: Lỗi máy chủ
+ */
+router.post('/', async (req, res, next) => {
+  try {
+    const { shortCode, originalUrl, userId, expiresAt, metadata } = req.body;
+    
+    // Validate input
+    if (!shortCode || !originalUrl) {
+      const error = new Error('shortCode và originalUrl là bắt buộc');
+      error.statusCode = 400;
+      return next(error);
+    }
+    
+    // Check if shortCode already exists
+    const existingUrl = await Url.findOne({ shortCode });
+    if (existingUrl) {
+      const error = new Error(`URL với shortCode ${shortCode} đã tồn tại`);
+      error.statusCode = 409;
+      return next(error);
+    }
+    
+    // Create new URL
+    const url = new Url({
+      shortCode,
+      originalUrl,
+      userId: userId || null,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      metadata: metadata || {}
+    });
+    
+    // Save to database
+    const savedUrl = await url.save();
+    logger.info(`URL mới đã được lưu: ${shortCode}`, { 
+      shortCode,
+      originalUrl,
+      userId,
+      requestId: req.id || uuidv4()
+    });
+    
+    // Cache the URL
+    await cacheService.cacheUrl(shortCode, originalUrl);
+    logger.debug(`URL đã được thêm vào cache: ${shortCode}`);
+    
+    res.status(201).json({
+      message: 'URL đã được lưu thành công',
+      data: savedUrl
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /api/urls:
  *   get:
  *     summary: Get all URLs with pagination
  *     description: Retrieves a list of URLs with pagination

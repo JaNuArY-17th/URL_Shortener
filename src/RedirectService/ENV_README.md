@@ -77,9 +77,37 @@ GEOIP_API_KEY=your_geoip_api_key
 
 ### RabbitMQ Connection
 - **RABBITMQ_URI**: URI kết nối đến RabbitMQ
-- **RABBITMQ_EXCHANGE**: Tên exchange để trao đổi message
-- **RABBITMQ_QUEUE_URL_CREATED**: Tên queue để nhận sự kiện URL được tạo mới
-- **RABBITMQ_QUEUE_REDIRECT_EVENTS**: Tên queue để gửi sự kiện chuyển hướng
+  - Format: `amqp://username:password@host:port`
+  - Mặc định: `amqp://localhost:5672`
+- **RABBITMQ_EXCHANGE**: Tên exchange cho các sự kiện
+  - Mặc định: `url-shortener-events`
+- **RABBITMQ_QUEUE_URL_CREATED**: Tên queue cho các sự kiện URL created
+  - Mặc định: `redirect-service.url-created`
+- **RABBITMQ_QUEUE_REDIRECT_EVENTS**: Tên queue cho các sự kiện redirect occurred
+  - Mặc định: `redirect-events`
+
+## Luồng xử lý URL mới với UrlShortenerService
+Service này đã được thiết kế để làm việc với UrlShortenerService theo quy trình sau:
+
+1. UrlShortenerService tạo mã ngắn (shortcode) cho URL gốc
+2. UrlShortenerService phát sự kiện `UrlCreatedEvent` với thông tin:
+   - `shortCode`: Mã rút gọn
+   - `originalUrl`: URL gốc
+   - `userId`: ID người dùng tạo URL (tùy chọn)
+   - `expiresAt`: Thời gian hết hạn (tùy chọn)
+   - `metadata`: Thông tin mở rộng (tùy chọn)
+
+3. RedirectService nhận sự kiện và:
+   - Lưu thông tin URL vào MongoDB
+   - Lưu URL vào Redis cache để tăng tốc độ chuyển hướng
+
+4. Khi có request đến shortcode, RedirectService:
+   - Tìm trong Redis cache
+   - Nếu không có, tìm trong MongoDB
+   - Chuyển hướng người dùng đến URL gốc
+   - Phát sự kiện `RedirectOccurredEvent` để thống kê
+
+RedirectService cũng cung cấp API trực tiếp để lưu URL mới qua endpoint `POST /api/urls` trong trường hợp cần tạo URL không thông qua UrlShortenerService.
 
 ### CORS Configuration
 - **CORS_ORIGINS**: Danh sách các domain được phép truy cập API, phân cách bởi dấu phẩy
