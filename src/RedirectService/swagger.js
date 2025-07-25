@@ -122,24 +122,6 @@ const options = {
             }
           }
         },
-        AnalyticsSummary: {
-          type: 'object',
-          properties: {
-            totalClicks: {
-              type: 'integer',
-              example: 1250
-            },
-            uniqueVisitors: {
-              type: 'integer',
-              example: 820
-            },
-            clicksPerUrl: {
-              type: 'number',
-              format: 'float',
-              example: 12.5
-            }
-          }
-        },
         RedirectResponse: {
           type: 'object',
           properties: {
@@ -328,10 +310,6 @@ const options = {
       {
         name: 'URL Management',
         description: 'Manage URLs and their settings'
-      },
-      {
-        name: 'Analytics',
-        description: 'URL analytics and statistics'
       },
       {
         name: 'Health',
