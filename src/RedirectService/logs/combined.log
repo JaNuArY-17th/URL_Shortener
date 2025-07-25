@@ -1,0 +1,182 @@
+{"level":"info","message":"Redirect Service running on port 3000","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"level":"info","message":"API Documentation available at http://localhost:3000/api-docs","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:46:59"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"level":"info","message":"Reconnecting to Redis in 50ms","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"code":"ECONNREFUSED","level":"error","message":"Error connecting to RabbitMQ:","service":"redirect-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 00:46:59"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 1000ms (attempt 1)","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:46:59"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"level":"info","message":"Reconnecting to Redis in 100ms","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:46:59"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"level":"info","message":"Reconnecting to Redis in 150ms","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:46:59"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"level":"info","message":"Reconnecting to Redis in 200ms","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"level":"info","message":"MongoDB connected","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:46:59"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"level":"info","message":"Reconnecting to Redis in 250ms","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"level":"info","message":"Initialized geo redirect rules for 0 URLs","service":"redirect-service","timestamp":"2025-07-26 00:46:59"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:00"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:00"}
+{"level":"info","message":"Reconnecting to Redis in 300ms","service":"redirect-service","timestamp":"2025-07-26 00:47:00"}
+{"code":"ECONNREFUSED","level":"error","message":"Error connecting to RabbitMQ:","service":"redirect-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 00:47:00"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 2000ms (attempt 2)","service":"redirect-service","timestamp":"2025-07-26 00:47:00"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:00"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:00"}
+{"level":"info","message":"Reconnecting to Redis in 350ms","service":"redirect-service","timestamp":"2025-07-26 00:47:00"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:00"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:00"}
+{"level":"info","message":"Reconnecting to Redis in 400ms","service":"redirect-service","timestamp":"2025-07-26 00:47:00"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:01"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:01"}
+{"level":"info","message":"Reconnecting to Redis in 450ms","service":"redirect-service","timestamp":"2025-07-26 00:47:01"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:01"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:01"}
+{"level":"info","message":"Reconnecting to Redis in 500ms","service":"redirect-service","timestamp":"2025-07-26 00:47:01"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:02"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:02"}
+{"level":"info","message":"Reconnecting to Redis in 550ms","service":"redirect-service","timestamp":"2025-07-26 00:47:02"}
+{"code":"ECONNREFUSED","level":"error","message":"Error connecting to RabbitMQ:","service":"redirect-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 00:47:02"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 3000ms (attempt 3)","service":"redirect-service","timestamp":"2025-07-26 00:47:02"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:02"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:02"}
+{"level":"info","message":"Reconnecting to Redis in 600ms","service":"redirect-service","timestamp":"2025-07-26 00:47:02"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:03"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:03"}
+{"level":"info","message":"Reconnecting to Redis in 650ms","service":"redirect-service","timestamp":"2025-07-26 00:47:03"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:03"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:03"}
+{"level":"info","message":"Reconnecting to Redis in 700ms","service":"redirect-service","timestamp":"2025-07-26 00:47:03"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:04"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:04"}
+{"level":"info","message":"Reconnecting to Redis in 750ms","service":"redirect-service","timestamp":"2025-07-26 00:47:04"}
+{"code":"ECONNREFUSED","level":"error","message":"Error connecting to RabbitMQ:","service":"redirect-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 00:47:05"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 4000ms (attempt 4)","service":"redirect-service","timestamp":"2025-07-26 00:47:05"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:05"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:05"}
+{"level":"info","message":"Reconnecting to Redis in 800ms","service":"redirect-service","timestamp":"2025-07-26 00:47:05"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:06"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:06"}
+{"level":"info","message":"Reconnecting to Redis in 850ms","service":"redirect-service","timestamp":"2025-07-26 00:47:06"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:07"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:07"}
+{"level":"info","message":"Reconnecting to Redis in 900ms","service":"redirect-service","timestamp":"2025-07-26 00:47:07"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:07"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:07"}
+{"level":"info","message":"Reconnecting to Redis in 950ms","service":"redirect-service","timestamp":"2025-07-26 00:47:07"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:08"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:08"}
+{"level":"info","message":"Reconnecting to Redis in 1000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:08"}
+{"code":"ECONNREFUSED","level":"error","message":"Error connecting to RabbitMQ:","service":"redirect-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 00:47:09"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 5000ms (attempt 5)","service":"redirect-service","timestamp":"2025-07-26 00:47:09"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:09"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:09"}
+{"level":"info","message":"Reconnecting to Redis in 1050ms","service":"redirect-service","timestamp":"2025-07-26 00:47:09"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:11"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:11"}
+{"level":"info","message":"Reconnecting to Redis in 1100ms","service":"redirect-service","timestamp":"2025-07-26 00:47:11"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:12"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:12"}
+{"level":"info","message":"Reconnecting to Redis in 1150ms","service":"redirect-service","timestamp":"2025-07-26 00:47:12"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:13"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:13"}
+{"level":"info","message":"Reconnecting to Redis in 1200ms","service":"redirect-service","timestamp":"2025-07-26 00:47:13"}
+{"code":"ECONNREFUSED","level":"error","message":"Error connecting to RabbitMQ:","service":"redirect-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 00:47:14"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 6000ms (attempt 6)","service":"redirect-service","timestamp":"2025-07-26 00:47:14"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:14"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:14"}
+{"level":"info","message":"Reconnecting to Redis in 1250ms","service":"redirect-service","timestamp":"2025-07-26 00:47:14"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:15"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:15"}
+{"level":"info","message":"Reconnecting to Redis in 1300ms","service":"redirect-service","timestamp":"2025-07-26 00:47:15"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:17"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:17"}
+{"level":"info","message":"Reconnecting to Redis in 1350ms","service":"redirect-service","timestamp":"2025-07-26 00:47:17"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:18"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:18"}
+{"level":"info","message":"Reconnecting to Redis in 1400ms","service":"redirect-service","timestamp":"2025-07-26 00:47:18"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:19"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:19"}
+{"level":"info","message":"Reconnecting to Redis in 1450ms","service":"redirect-service","timestamp":"2025-07-26 00:47:19"}
+{"code":"ECONNREFUSED","level":"error","message":"Error connecting to RabbitMQ:","service":"redirect-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 00:47:20"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 7000ms (attempt 7)","service":"redirect-service","timestamp":"2025-07-26 00:47:20"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:21"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:21"}
+{"level":"info","message":"Reconnecting to Redis in 1500ms","service":"redirect-service","timestamp":"2025-07-26 00:47:21"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:22"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:22"}
+{"level":"info","message":"Reconnecting to Redis in 1550ms","service":"redirect-service","timestamp":"2025-07-26 00:47:22"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:24"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:24"}
+{"level":"info","message":"Reconnecting to Redis in 1600ms","service":"redirect-service","timestamp":"2025-07-26 00:47:24"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:25"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:25"}
+{"level":"info","message":"Reconnecting to Redis in 1650ms","service":"redirect-service","timestamp":"2025-07-26 00:47:25"}
+{"code":"ECONNREFUSED","level":"error","message":"Error connecting to RabbitMQ:","service":"redirect-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 00:47:27"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 8000ms (attempt 8)","service":"redirect-service","timestamp":"2025-07-26 00:47:27"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:27"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:27"}
+{"level":"info","message":"Reconnecting to Redis in 1700ms","service":"redirect-service","timestamp":"2025-07-26 00:47:27"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:29"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:29"}
+{"level":"info","message":"Reconnecting to Redis in 1750ms","service":"redirect-service","timestamp":"2025-07-26 00:47:29"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:31"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:31"}
+{"level":"info","message":"Reconnecting to Redis in 1800ms","service":"redirect-service","timestamp":"2025-07-26 00:47:31"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:32"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:32"}
+{"level":"info","message":"Reconnecting to Redis in 1850ms","service":"redirect-service","timestamp":"2025-07-26 00:47:32"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:34"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:34"}
+{"level":"info","message":"Reconnecting to Redis in 1900ms","service":"redirect-service","timestamp":"2025-07-26 00:47:34"}
+{"code":"ECONNREFUSED","level":"error","message":"Error connecting to RabbitMQ:","service":"redirect-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 00:47:35"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 9000ms (attempt 9)","service":"redirect-service","timestamp":"2025-07-26 00:47:35"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:36"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:36"}
+{"level":"info","message":"Reconnecting to Redis in 1950ms","service":"redirect-service","timestamp":"2025-07-26 00:47:36"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:38"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:38"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:38"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:40"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:40"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:40"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:42"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:42"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:42"}
+{"code":"ECONNREFUSED","level":"error","message":"Error connecting to RabbitMQ:","service":"redirect-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 00:47:44"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 10000ms (attempt 10)","service":"redirect-service","timestamp":"2025-07-26 00:47:44"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:44"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:44"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:44"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:46"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:46"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:46"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:48"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:48"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:48"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:50"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:50"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:50"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:52"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:52"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:52"}
+{"code":"ECONNREFUSED","level":"error","message":"Error connecting to RabbitMQ:","service":"redirect-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 00:47:54"}
+{"level":"error","message":"Max reconnect attempts reached, giving up","service":"redirect-service","timestamp":"2025-07-26 00:47:54"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:54"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:54"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:54"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:56"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:56"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:56"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:47:58"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:47:58"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:47:58"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:48:00"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:48:00"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:48:00"}
+{"address":"127.0.0.1","code":"ECONNREFUSED","errno":-4078,"level":"error","message":"Redis error: connect ECONNREFUSED 127.0.0.1:6379","port":6379,"service":"redirect-service","stack":"Error: connect ECONNREFUSED 127.0.0.1:6379\n    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1607:16)","syscall":"connect","timestamp":"2025-07-26 00:48:02"}
+{"level":"warn","message":"Redis connection closed","service":"redirect-service","timestamp":"2025-07-26 00:48:02"}
+{"level":"info","message":"Reconnecting to Redis in 2000ms","service":"redirect-service","timestamp":"2025-07-26 00:48:02"}
