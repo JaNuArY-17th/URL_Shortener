@@ -1,12 +1,12 @@
-namespace UrlShortenerService.Events
+namespace UrlShortenerService.Models
 {
-    public class UrlCreatedEvent
+    public class UrlCreationResponse
     {
         public string ShortCode { get; set; } = string.Empty;
         public string OriginalUrl { get; set; } = string.Empty;
-        public string? UserId { get; set; }
+        public string ShortUrl { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime? ExpiresAt { get; set; }
-        public Dictionary<string, object>? Metadata { get; set; }
+        public string? UserId { get; set; }
     }
 }

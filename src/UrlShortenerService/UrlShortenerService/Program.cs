@@ -1,75 +1,47 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
-using UrlShortenerService.Configuration;
 using UrlShortenerService.Services;
-using System.Reflection;
-using System.IO;
-using System;
+using UrlShortenerService.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Cấu hình port từ biến môi trường cho Render.com
-var port = Environment.GetEnvironmentVariable("PORT");
-if (!string.IsNullOrEmpty(port))
-{
-    builder.WebHost.UseUrls($"http://*:{port}");
-}
-
-// Cấu hình từ appsettings.json
-builder.Services.Configure<AppSettings>(
-    builder.Configuration.GetSection("AppSettings"));
-
-// Đăng ký các service
-builder.Services.AddMemoryCache();
-builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
-builder.Services.AddScoped<IUrlShortenerService, UrlShortenerServiceImpl>();
-
-// Add health check
-builder.Services.AddHealthChecks();
-
-// Add controllers
+// Add services to the container
 builder.Services.AddControllers();
 
-// Add Swagger
+// Configure Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { 
-        Title = "UrlShortenerService API", 
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "URL Shortener Service API",
         Version = "v1",
-        Description = "API để tạo các URL rút gọn",
-        Contact = new OpenApiContact
+        Description = "API để tạo mã rút gọn cho URL",
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
         {
-            Name = "Admin",
-            Email = "admin@urlshortener.com"
+            Name = "Support Team",
+            Email = "support@example.com"
         }
     });
-    
-    // Thêm XML documentation
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+
+    // Include XML comments
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    
-    // Kiểm tra file có tồn tại không để tránh lỗi
     if (File.Exists(xmlPath))
     {
         c.IncludeXmlComments(xmlPath);
     }
-    
-    // Loại bỏ controller WeatherForecast mặc định
-    c.DocInclusionPredicate((docName, apiDesc) =>
-    {
-        return !apiDesc.RelativePath?.Contains("weatherforecast", StringComparison.OrdinalIgnoreCase) == false;
-    });
 });
 
-// CORS
+// Register services
+builder.Services.AddSingleton<IShortCodeGeneratorService, ShortCodeGeneratorService>();
+builder.Services.AddSingleton<IEventPublisher, RabbitMQEventPublisher>();
+builder.Services.AddSingleton<RateLimitingService>();
+
+// Configure CORS
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowAll", builder =>
     {
-        policy.AllowAnyOrigin()
+        builder.AllowAnyOrigin()
                .AllowAnyMethod()
                .AllowAnyHeader();
     });
@@ -77,34 +49,23 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure middleware
-if (app.Environment.IsDevelopment())
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
-    app.UseDeveloperExceptionPage();
     app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
-{
-    // Xử lý ngoại lệ trong môi trường production
-    app.UseExceptionHandler(appBuilder =>
+    app.UseSwaggerUI(c =>
     {
-        appBuilder.Run(async context =>
-        {
-            context.Response.StatusCode = 500;
-            await context.Response.WriteAsync("An error occurred. Please try again later.");
-        });
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "URL Shortener Service API v1");
+        c.RoutePrefix = "api-docs";
     });
 }
 
-app.UseHttpsRedirection();
-app.UseCors();
-app.UseRouting();
-app.UseAuthorization();
-app.MapControllers();
-app.MapHealthChecks("/health");
+app.UseCors("AllowAll");
 
-// In thông tin về cổng đang lắng nghe
-Console.WriteLine($"Application is listening on port {port ?? "default"}");
+app.UseHttpsRedirection();
+
+app.UseAuthorization();
+
+app.MapControllers();
 
 app.Run();

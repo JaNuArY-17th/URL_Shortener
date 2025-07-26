@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36203.30 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UrlShortenerService", "UrlShortenerService\UrlShortenerService.csproj", "{B49D2BBC-B9F8-4B7C-9695-8339193607E1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UrlShortenerService", "UrlShortenerService\UrlShortenerService.csproj", "{ABB47078-EDF8-481A-BB17-F337509156CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B49D2BBC-B9F8-4B7C-9695-8339193607E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B49D2BBC-B9F8-4B7C-9695-8339193607E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B49D2BBC-B9F8-4B7C-9695-8339193607E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B49D2BBC-B9F8-4B7C-9695-8339193607E1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ABB47078-EDF8-481A-BB17-F337509156CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ABB47078-EDF8-481A-BB17-F337509156CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ABB47078-EDF8-481A-BB17-F337509156CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ABB47078-EDF8-481A-BB17-F337509156CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {A04C13DF-393D-4F44-B3BA-9B8C3094A203}
+		SolutionGuid = {312B33BB-1FBE-48FE-A418-049A97F32256}
 	EndGlobalSection
 EndGlobal

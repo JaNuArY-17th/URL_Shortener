@@ -3,32 +3,56 @@
   "WorkspaceRootPath": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\urlshortenerservice.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
-      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\urlshortenerservice.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\controller\\urlcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\controller\\urlcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\events\\rabbitmqeventpublisher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\events\\rabbitmqeventpublisher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\configuration\\appsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\configuration\\appsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\events\\ieventpublisher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\events\\ieventpublisher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\events\\urlcreatedevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\events\\urlcreatedevent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\services\\messagepublisher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\services\\messagepublisher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\services\\shortcodegeneratorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\services\\shortcodegeneratorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\services\\urlshortenerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\services\\urlshortenerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\services\\ratelimitingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\services\\ratelimitingservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\services\\ishortcodegeneratorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\services\\ishortcodegeneratorservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\helpers\\urlvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\helpers\\urlvalidator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\helpers\\stringutils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\helpers\\stringutils.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\models\\urlcreationrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\models\\urlcreationrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\models\\urlcreationresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\models\\urlcreationresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\controllers\\urlcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{ABB47078-EDF8-481A-BB17-F337509156CF}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\controllers\\urlcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -38,7 +62,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 9,
           "Children": [
             {
               "$type": "Bookmark",
@@ -54,93 +78,171 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "UrlShortenerService.http",
-              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\UrlShortenerService.http",
-              "RelativeDocumentMoniker": "UrlShortenerService\\UrlShortenerService.http",
-              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\UrlShortenerService.http",
-              "RelativeToolTip": "UrlShortenerService\\UrlShortenerService.http",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAADAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
-              "WhenOpened": "2025-07-26T03:05:41.521Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "AppSettings.cs",
-              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Configuration\\AppSettings.cs",
-              "RelativeDocumentMoniker": "UrlShortenerService\\Configuration\\AppSettings.cs",
-              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Configuration\\AppSettings.cs",
-              "RelativeToolTip": "UrlShortenerService\\Configuration\\AppSettings.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAFAAAAAAAAAA==",
+              "DocumentIndex": 5,
+              "Title": "ShortCodeGeneratorService.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\ShortCodeGeneratorService.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Services\\ShortCodeGeneratorService.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\ShortCodeGeneratorService.cs",
+              "RelativeToolTip": "UrlShortenerService\\Services\\ShortCodeGeneratorService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-26T02:55:06.648Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "Program.cs",
-              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Program.cs",
-              "RelativeDocumentMoniker": "UrlShortenerService\\Program.cs",
-              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Program.cs",
-              "RelativeToolTip": "UrlShortenerService\\Program.cs",
-              "ViewState": "AgIAABAAAAAAAAAAAAAAABwAAAAoAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-26T02:46:17.467Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\appsettings.json",
-              "RelativeDocumentMoniker": "UrlShortenerService\\appsettings.json",
-              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\appsettings.json",
-              "RelativeToolTip": "UrlShortenerService\\appsettings.json",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-07-26T02:45:20.026Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "UrlController.cs",
-              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Controller\\UrlController.cs",
-              "RelativeDocumentMoniker": "UrlShortenerService\\Controller\\UrlController.cs",
-              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Controller\\UrlController.cs",
-              "RelativeToolTip": "UrlShortenerService\\Controller\\UrlController.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEEAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-26T02:45:07.711Z",
+              "WhenOpened": "2025-07-26T09:40:41.334Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 6,
-              "Title": "UrlShortenerService.cs",
-              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\UrlShortenerService.cs",
-              "RelativeDocumentMoniker": "UrlShortenerService\\Services\\UrlShortenerService.cs",
-              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\UrlShortenerService.cs",
-              "RelativeToolTip": "UrlShortenerService\\Services\\UrlShortenerService.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAE8AAAAAAAAAAAAAAA==",
+              "Title": "RateLimitingService.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\RateLimitingService.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Services\\RateLimitingService.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\RateLimitingService.cs",
+              "RelativeToolTip": "UrlShortenerService\\Services\\RateLimitingService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACcAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-26T02:42:59.128Z",
+              "WhenOpened": "2025-07-26T09:42:20.911Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "MessagePublisher.cs",
-              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\MessagePublisher.cs",
-              "RelativeDocumentMoniker": "UrlShortenerService\\Services\\MessagePublisher.cs",
-              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\MessagePublisher.cs",
-              "RelativeToolTip": "UrlShortenerService\\Services\\MessagePublisher.cs",
-              "ViewState": "AgIAACsAAAAAAAAAAAAwwDYAAAAWAAAAAAAAAA==",
+              "DocumentIndex": 3,
+              "Title": "IEventPublisher.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Events\\IEventPublisher.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Events\\IEventPublisher.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Events\\IEventPublisher.cs",
+              "RelativeToolTip": "UrlShortenerService\\Events\\IEventPublisher.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAABNAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-07-26T02:37:29.479Z",
+              "WhenOpened": "2025-07-26T09:36:50.28Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "RabbitMQEventPublisher.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Events\\RabbitMQEventPublisher.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Events\\RabbitMQEventPublisher.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Events\\RabbitMQEventPublisher.cs",
+              "RelativeToolTip": "UrlShortenerService\\Events\\RabbitMQEventPublisher.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T09:38:02.173Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "UrlCreatedEvent.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Events\\UrlCreatedEvent.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Events\\UrlCreatedEvent.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Events\\UrlCreatedEvent.cs",
+              "RelativeToolTip": "UrlShortenerService\\Events\\UrlCreatedEvent.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAABBAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T09:36:15.685Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Program.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Program.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Program.cs",
+              "RelativeToolTip": "UrlShortenerService\\Program.cs",
+              "ViewState": "AgIAACQAAAAAAAAAAAAAAEcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T09:44:38.454Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\appsettings.json",
+              "RelativeDocumentMoniker": "UrlShortenerService\\appsettings.json",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\appsettings.json",
+              "RelativeToolTip": "UrlShortenerService\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-07-26T09:27:53.989Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "IShortCodeGeneratorService.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\IShortCodeGeneratorService.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Services\\IShortCodeGeneratorService.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\IShortCodeGeneratorService.cs",
+              "RelativeToolTip": "UrlShortenerService\\Services\\IShortCodeGeneratorService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T09:39:51.864Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "UrlValidator.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Helpers\\UrlValidator.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Helpers\\UrlValidator.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Helpers\\UrlValidator.cs",
+              "RelativeToolTip": "UrlShortenerService\\Helpers\\UrlValidator.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T09:43:04.175Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "StringUtils.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Helpers\\StringUtils.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Helpers\\StringUtils.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Helpers\\StringUtils.cs",
+              "RelativeToolTip": "UrlShortenerService\\Helpers\\StringUtils.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T09:43:23.23Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "UrlCreationRequest.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Models\\UrlCreationRequest.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Models\\UrlCreationRequest.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Models\\UrlCreationRequest.cs",
+              "RelativeToolTip": "UrlShortenerService\\Models\\UrlCreationRequest.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAABBAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T09:31:26.318Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "UrlCreationResponse.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Models\\UrlCreationResponse.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Models\\UrlCreationResponse.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Models\\UrlCreationResponse.cs",
+              "RelativeToolTip": "UrlShortenerService\\Models\\UrlCreationResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAArAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T09:32:05.01Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "UrlController.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Controllers\\UrlController.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Controllers\\UrlController.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Controllers\\UrlController.cs",
+              "RelativeToolTip": "UrlShortenerService\\Controllers\\UrlController.cs",
+              "ViewState": "AgIAAHUAAAAAAAAAAAAowIIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T09:44:16.226Z",
               "EditorCaption": ""
             }
           ]
