@@ -9,11 +9,13 @@ using System.IO;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);
-var builder = WebApplication.CreateBuilder(args);
 
-// Cấu hình để lắng nghe trên PORT từ biến môi trường
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
-builder.WebHost.UseUrls($"http://*:{port}");
+// Cấu hình port từ biến môi trường cho Render.com
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://*:{port}");
+}
 
 // Cấu hình từ appsettings.json
 builder.Services.Configure<AppSettings>(
@@ -58,16 +60,16 @@ builder.Services.AddSwaggerGen(c =>
     // Loại bỏ controller WeatherForecast mặc định
     c.DocInclusionPredicate((docName, apiDesc) =>
     {
-        return !apiDesc.RelativePath.Contains("weatherforecast", StringComparison.OrdinalIgnoreCase);
+        return !apiDesc.RelativePath?.Contains("weatherforecast", StringComparison.OrdinalIgnoreCase) == false;
     });
 });
 
 // CORS
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
+    options.AddDefaultPolicy(policy =>
     {
-        builder.AllowAnyOrigin()
+        policy.AllowAnyOrigin()
                .AllowAnyMethod()
                .AllowAnyHeader();
     });
@@ -82,6 +84,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    // Xử lý ngoại lệ trong môi trường production
+    app.UseExceptionHandler(appBuilder =>
+    {
+        appBuilder.Run(async context =>
+        {
+            context.Response.StatusCode = 500;
+            await context.Response.WriteAsync("An error occurred. Please try again later.");
+        });
+    });
+}
 
 app.UseHttpsRedirection();
 app.UseCors();
@@ -89,5 +103,8 @@ app.UseRouting();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
+
+// In thông tin về cổng đang lắng nghe
+Console.WriteLine($"Application is listening on port {port ?? "default"}");
 
 app.Run();
