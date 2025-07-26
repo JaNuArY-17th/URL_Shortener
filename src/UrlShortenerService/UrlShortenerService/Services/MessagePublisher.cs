@@ -16,14 +16,14 @@ namespace UrlShortenerService.Services
 
     public class RabbitMqPublisher : IMessagePublisher, IDisposable
     {
-        private IConnection _connection;
-        private IModel _channel;
+        private IConnection? _connection;
+        private IModel? _channel;
         private readonly string _urlCreatedExchange;
-        private readonly ILogger<RabbitMqPublisher> _logger;
+        private readonly ILogger<RabbitMqPublisher>? _logger;
         private readonly RabbitMqSettings _settings;
         private bool _isConnected = false;
 
-        public RabbitMqPublisher(IOptions<AppSettings> options, ILogger<RabbitMqPublisher> logger = null)
+        public RabbitMqPublisher(IOptions<AppSettings> options, ILogger<RabbitMqPublisher>? logger = null)
         {
             _settings = options.Value.RabbitMq;
             _urlCreatedExchange = _settings.UrlCreatedExchange;
@@ -93,7 +93,7 @@ namespace UrlShortenerService.Services
                 var message = JsonConvert.SerializeObject(urlCreatedEvent);
                 var body = Encoding.UTF8.GetBytes(message);
 
-                _channel.BasicPublish(
+                _channel?.BasicPublish(
                     exchange: _urlCreatedExchange,
                     routingKey: "",
                     basicProperties: null,
@@ -110,23 +110,36 @@ namespace UrlShortenerService.Services
 
         private void LogInfo(string message)
         {
-            _logger?.LogInformation(message) ?? Console.WriteLine(message);
+            if (_logger != null)
+                _logger.LogInformation(message);
+            else
+                Console.WriteLine(message);
         }
 
         private void LogWarning(string message)
         {
-            _logger?.LogWarning(message) ?? Console.WriteLine(message);
+            if (_logger != null)
+                _logger.LogWarning(message);
+            else
+                Console.WriteLine(message);
         }
 
         public void Dispose()
         {
             try 
             {
-                _channel?.Close();
-                _connection?.Close();
+                if (_channel != null)
+                {
+                    _channel.Close();
+                    _channel = null;
+                }
+
+                if (_connection != null)
+                {
+                    _connection.Close();
+                    _connection = null;
+                }
                 
-                _channel = null;
-                _connection = null;
                 _isConnected = false;
             }
             catch (Exception ex)
