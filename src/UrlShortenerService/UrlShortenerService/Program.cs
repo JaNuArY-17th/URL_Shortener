@@ -9,6 +9,11 @@ using System.IO;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
+
+// Cấu hình để lắng nghe trên PORT từ biến môi trường
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+builder.WebHost.UseUrls($"http://*:{port}");
 
 // Cấu hình từ appsettings.json
 builder.Services.Configure<AppSettings>(
