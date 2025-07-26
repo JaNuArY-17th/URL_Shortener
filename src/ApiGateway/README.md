@@ -1,65 +1,89 @@
-# ApiGateway
+# API Gateway
 
-Đây là entrypoint của hệ thống, sử dụng Ocelot để định tuyến, bảo mật và tổng hợp các request từ client đến các microservice phía sau. Chịu trách nhiệm xác thực, phân quyền, logging, rate limiting, CORS, v.v.
+API Gateway của hệ thống URL Shortener, triển khai bằng Node.js và Express. Đây là điểm vào chính của hệ thống, xử lý routing, bảo mật, và tích hợp Swagger UI cho tất cả các microservices.
 
-## Công nghệ
-- **ASP.NET Core**
-- **Ocelot** cho API gateway
-- **JWT Authentication** cho xác thực token từ AuthService (Node.js)
-- **Swagger** cho API documentation
+## Công nghệ sử dụng
+- **Node.js** và **Express**
+- **http-proxy-middleware** cho reverse proxy
+- **swagger-ui-express** cho API documentation
+- **jsonwebtoken** cho xác thực
+- **helmet** cho bảo mật
+- **winston** cho logging
+- **express-rate-limit** cho giới hạn tần suất request
 
 ## Cấu trúc thư mục
 ```
-ApiGateway/
-├── .vs/                   # Visual Studio files
-├── ApiGateway/            # Project folder
-│   ├── Middleware/        # Custom middleware
-│   │   ├── AuthenticationMiddleware.cs  # JWT token parsing
-│   │   └── RequestIdMiddleware.cs       # Request ID generation
-│   ├── ocelot.json        # Ocelot routing configuration
-│   ├── ocelot.Development.json # Environment-specific configuration
-│   ├── appsettings.json   # Application settings
-│   ├── appsettings.Development.json # Development settings
-│   ├── Program.cs         # Application entry point
-│   ├── ApiGateway.csproj  # Project file
-│   └── Dockerfile         # Docker build file
-└── ApiGateway.sln         # Solution file
+/
+├── config/             # Cấu hình ứng dụng
+│   └── config.js       # Cấu hình tập trung, kết nối services
+├── middleware/         # Middlewares
+│   ├── authenticate.js # Xác thực JWT
+│   ├── error-handler.js# Xử lý lỗi
+│   └── request-id.js   # Thêm request ID vào mỗi request
+├── routes/             # Định nghĩa routes
+│   ├── health.js       # Health check endpoints
+│   ├── proxy.js        # Cấu hình proxy đến các services
+│   └── swagger.js      # Swagger UI endpoints
+├── services/           # Services
+│   └── logger.js       # Logger service
+├── .env                # Biến môi trường
+├── ENV_README.md       # Hướng dẫn cấu hình môi trường
+├── Dockerfile          # Docker configuration
+├── package.json        # Dependencíes
+└── server.js           # Entry point
 ```
 
-## Routing Configuration
+## Tính năng chính
+1. **Reverse Proxy**: Chuyển tiếp requests đến các microservices tương ứng
+2. **Xác thực tập trung**: Xác thực JWT token và chuyển tiếp thông tin người dùng
+3. **Swagger UI tích hợp**: Tập hợp API docs từ tất cả các microservices
+4. **Rate Limiting**: Giới hạn tần suất request
+5. **Health Checks**: API kiểm tra trạng thái của tất cả các services
+6. **Request Tracking**: Mỗi request có một ID duy nhất để theo dõi qua logs
 
-Ocelot được cấu hình để định tuyến đến các service:
+## Cấu hình các routes
 
-1. **AuthService (Node.js)** - `/api/auth/*`, `/api/users/*`
-2. **UrlShortenerService (ASP.NET Core)** - `/api/urls/*`
-3. **RedirectService (Node.js)** - `/{shortCode}`
-4. **AnalyticsService (Node.js)** - `/api/analytics/*`
-5. **NotificationService (Node.js)** - `/api/notifications/*`
+### Health Check
+- `GET /api/health`: Health check cơ bản
+- `GET /api/health/deep`: Kiểm tra trạng thái của tất cả các services
 
-## Authentication
+### Swagger UI
+- `GET /swagger`: Trang chủ Swagger với danh sách tất cả các services
+- `GET /swagger/{serviceName}`: Swagger UI cho service cụ thể
+- `GET /swagger/{serviceName}/json`: Swagger JSON cho service cụ thể
 
-API Gateway xác thực JWT tokens được phát hành bởi AuthService (Node.js) và chuyển tiếp thông tin người dùng đến các microservices thông qua headers.
+### API Routes
+- `POST /api/auth/register`: Đăng ký người dùng (AuthService)
+- `POST /api/auth/login`: Đăng nhập (AuthService)
+- `GET /api/users/me`: Thông tin người dùng (AuthService)
+- `POST /api/urls/create`: Tạo URL rút gọn (UrlShortenerService)
+- `GET /api/urls`: Quản lý URLs (RedirectService)
+- `GET /api/analytics/*`: Thống kê và phân tích (AnalyticsService)
+- `GET /api/notifications/*`: Thông báo (NotificationService)
+- `GET /{shortCode}`: Chuyển hướng URL (RedirectService)
 
 ## Chạy ứng dụng
 
+### Cài đặt dependencies
 ```bash
-cd src/ApiGateway/ApiGateway
-dotnet restore
-dotnet run
+npm install
 ```
 
-API Gateway sẽ chạy mặc định tại https://localhost:5001
-
-## Swagger UI
-
-Truy cập Swagger UI tại https://localhost:5001/swagger để xem các API từ tất cả các service.
-
-## Docker
-
-Build và chạy container:
-
+### Chạy ở chế độ development
 ```bash
-cd src/ApiGateway/ApiGateway
-docker build -t url-shortener/api-gateway .
-docker run -p 5001:80 url-shortener/api-gateway
-``` 
+npm run dev
+```
+
+### Chạy ở chế độ production
+```bash
+npm start
+```
+
+### Chạy với Docker
+```bash
+docker build -t api-gateway .
+docker run -p 5000:5000 -d api-gateway
+```
+
+### Cấu hình môi trường
+Xem file `ENV_README.md` để biết chi tiết về cấu hình môi trường. 
