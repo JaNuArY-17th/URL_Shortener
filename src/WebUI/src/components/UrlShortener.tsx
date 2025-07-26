@@ -133,7 +133,7 @@ export function UrlShortener() {
               onClick={handleShorten} 
               disabled={isLoading}
               variant="gradient"
-              size="lg"
+              size="default"
               className="min-w-[120px]"
             >
               {isLoading ? "Shortening..." : "Shorten"}

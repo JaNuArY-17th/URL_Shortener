@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowLeft, Link2 } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -45,7 +45,32 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative">
+      {/* Back to Home button */}
+      <div className="absolute top-4 left-4">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="flex items-center gap-2"
+          asChild
+        >
+          <Link to="/">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
+        </Button>
+      </div>
+      
+      {/* Brand logo */}
+      <div className="mb-6 flex items-center gap-2">
+        <div className="p-2 bg-gradient-primary rounded-lg">
+          <Link2 className="h-6 w-6 text-white" />
+        </div>
+        <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+          QuickLink
+        </h2>
+      </div>
+      
       <Card className="w-full max-w-md shadow-soft">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
@@ -98,6 +123,12 @@ export default function Login() {
                   )}
                 </Button>
               </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Button variant="link" size="sm" className="text-sm p-0" asChild>
+                <Link to="/forgot-password">Forgot password?</Link>
+              </Button>
             </div>
 
             <Button 

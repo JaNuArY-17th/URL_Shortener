@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Link2, 
   Copy, 
@@ -28,6 +30,7 @@ interface ShortenedUrl {
 }
 
 export default function Dashboard() {
+  const { user, logout } = useAuth();
   const [url, setUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [shortenedUrls, setShortenedUrls] = useState<ShortenedUrl[]>([
@@ -157,22 +160,48 @@ export default function Dashboard() {
           </div>
 
           <nav className="hidden md:flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Analytics
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2"
+              asChild
+            >
+              <Link to="/analytics">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </Link>
             </Button>
-            <Button variant="ghost" size="sm" className="gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2"
+              asChild
+            >
+              <Link to="/settings">
+                <Settings className="h-4 w-4" />
+                Settings
+              </Link>
             </Button>
           </nav>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
-              <User className="h-4 w-4" />
-              John Doe
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              asChild
+            >
+              <Link to="/settings">
+                <User className="h-4 w-4" />
+                {user?.name || "Account"}
+              </Link>
             </Button>
-            <Button variant="ghost" size="sm" className="gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => logout()}
+            >
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -265,9 +294,22 @@ export default function Dashboard() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Your Shortened URLs</h2>
-              <Badge variant="secondary" className="text-sm">
-                {shortenedUrls.length} {shortenedUrls.length === 1 ? 'URL' : 'URLs'}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-sm">
+                  {shortenedUrls.length} {shortenedUrls.length === 1 ? 'URL' : 'URLs'}
+                </Badge>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="gap-2"
+                  asChild
+                >
+                  <Link to="/analytics">
+                    <BarChart3 className="h-4 w-4" />
+                    View Analytics
+                  </Link>
+                </Button>
+              </div>
             </div>
 
             <div className="grid gap-4">
@@ -314,15 +356,28 @@ export default function Dashboard() {
                       </div>
 
                       {/* Stats */}
-                      <div className="flex items-center gap-6 pt-2 border-t">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Eye className="h-4 w-4" />
-                          <span>{item.clicks} clicks</span>
+                      <div className="flex items-center justify-between gap-6 pt-2 border-t">
+                        <div className="flex items-center gap-6">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Eye className="h-4 w-4" />
+                            <span>{item.clicks} clicks</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="h-4 w-4" />
+                            <span>{formatDate(item.createdAt)}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          <span>{formatDate(item.createdAt)}</span>
-                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="gap-2 text-xs"
+                          asChild
+                        >
+                          <Link to={`/analytics?url=${item.id}`}>
+                            <BarChart3 className="h-3 w-3" />
+                            Details
+                          </Link>
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
