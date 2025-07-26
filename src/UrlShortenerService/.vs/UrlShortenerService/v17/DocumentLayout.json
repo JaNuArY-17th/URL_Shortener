@@ -1,0 +1,165 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\urlshortenerservice.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
+      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\urlshortenerservice.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\controller\\urlcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\controller\\urlcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\configuration\\appsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\configuration\\appsettings.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\services\\messagepublisher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\services\\messagepublisher.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|d:\\study\\term6\\amd\\cw\\url_shortener\\src\\urlshortenerservice\\urlshortenerservice\\services\\urlshortenerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B49D2BBC-B9F8-4B7C-9695-8339193607E1}|UrlShortenerService\\UrlShortenerService.csproj|solutionrelative:urlshortenerservice\\services\\urlshortenerservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{40ea2e6b-2121-4bb8-a43e-c83c04b51041}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{eefa5220-e298-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "UrlShortenerService.http",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\UrlShortenerService.http",
+              "RelativeDocumentMoniker": "UrlShortenerService\\UrlShortenerService.http",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\UrlShortenerService.http",
+              "RelativeToolTip": "UrlShortenerService\\UrlShortenerService.http",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAADAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
+              "WhenOpened": "2025-07-26T03:05:41.521Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AppSettings.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Configuration\\AppSettings.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Configuration\\AppSettings.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Configuration\\AppSettings.cs",
+              "RelativeToolTip": "UrlShortenerService\\Configuration\\AppSettings.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T02:55:06.648Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Program.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Program.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Program.cs",
+              "RelativeToolTip": "UrlShortenerService\\Program.cs",
+              "ViewState": "AgIAABAAAAAAAAAAAAAAABwAAAAoAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T02:46:17.467Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\appsettings.json",
+              "RelativeDocumentMoniker": "UrlShortenerService\\appsettings.json",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\appsettings.json",
+              "RelativeToolTip": "UrlShortenerService\\appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABYAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-07-26T02:45:20.026Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "UrlController.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Controller\\UrlController.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Controller\\UrlController.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Controller\\UrlController.cs",
+              "RelativeToolTip": "UrlShortenerService\\Controller\\UrlController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAEEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T02:45:07.711Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "UrlShortenerService.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\UrlShortenerService.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Services\\UrlShortenerService.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\UrlShortenerService.cs",
+              "RelativeToolTip": "UrlShortenerService\\Services\\UrlShortenerService.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAE8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T02:42:59.128Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "MessagePublisher.cs",
+              "DocumentMoniker": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\MessagePublisher.cs",
+              "RelativeDocumentMoniker": "UrlShortenerService\\Services\\MessagePublisher.cs",
+              "ToolTip": "D:\\Study\\Term6\\AMD\\CW\\URL_Shortener\\src\\UrlShortenerService\\UrlShortenerService\\Services\\MessagePublisher.cs",
+              "RelativeToolTip": "UrlShortenerService\\Services\\MessagePublisher.cs",
+              "ViewState": "AgIAACsAAAAAAAAAAAAwwDYAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-07-26T02:37:29.479Z",
+              "EditorCaption": ""
+            }
+          ]
+        },
+        {
+          "DockedWidth": 1666,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{d78612c7-9962-4b83-95d9-268046dad23a}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
