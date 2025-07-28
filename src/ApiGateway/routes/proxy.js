@@ -89,59 +89,46 @@ const setupProxyRoutes = (app) => {
   // Auth Service Routes
   // Vì Express remove mount path, ta cần thêm lại '/api/auth' khi proxy
   app.use('/api/auth', ...createProxyWithLogging(
-    `${config.services.auth}`,
-    {
-      // Thêm prefix /api/auth vào path gốc sau khi Express cắt mount path
-      '^/': '/api/auth/'
-    }
+    config.services.auth,
+    (path) => '/api/auth' + path
   ));
   
   app.use('/api/users', ...createProxyWithLogging(
-    `${config.services.auth}`,
-    {
-      '^/': '/api/users/'
-    },
+    config.services.auth,
+    (path) => '/api/users' + path,
     true // Yêu cầu xác thực
   ));
   
   // URL Shortener Service Routes
   app.use('/api/urls/create', ...createProxyWithLogging(
-    `${config.services.urlShorteners}`,
-    {
-      '^/': '/api/urls/'
-    }
+    config.services.urlShorteners,
+    (path) => '/api/urls' + path
   ));
   
   // Redirect Service - URL Management Routes
   app.use('/api/urls', ...createProxyWithLogging(
-    `${config.services.redirect}`,
-    {
-      '^/': '/api/urls/'
-    },
+    config.services.redirect,
+    (path) => '/api/urls' + path,
     true // Yêu cầu xác thực
   ));
   
   // Redirect Service - Redirect Route
   app.use('/:shortCode([a-zA-Z0-9]{6,10})', ...createProxyWithLogging(
-    `${config.services.redirect}`,
+    config.services.redirect,
     {} // Không thay đổi path
   ));
   
   // Analytics Service Routes
   app.use('/api/analytics', ...createProxyWithLogging(
-    `${config.services.analytics}`,
-    {
-      '^/': '/api/analytics/'
-    },
+    config.services.analytics,
+    (path) => '/api/analytics' + path,
     true // Yêu cầu xác thực
   ));
   
   // Notification Service Routes
   app.use('/api/notifications', ...createProxyWithLogging(
-    `${config.services.notification}`,
-    {
-      '^/': '/api/notifications/'
-    },
+    config.services.notification,
+    (path) => '/api/notifications' + path,
     true // Yêu cầu xác thực
   ));
   
