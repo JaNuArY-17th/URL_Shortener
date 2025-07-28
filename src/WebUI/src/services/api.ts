@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { API_GATEWAY } from './api-references';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
+  baseURL: API_GATEWAY.BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -40,70 +41,155 @@ api.interceptors.response.use(
 // Auth API
 export const authAPI = {
   login: async (email: string, password: string) => {
-    const response = await api.post('/auth/login', { email, password });
+    const response = await api.post('/api/auth/login', { email, password });
     return response.data;
   },
   
   register: async (name: string, email: string, password: string) => {
-    const response = await api.post('/auth/register', { name, email, password });
+    const response = await api.post('/api/auth/register', { name, email, password });
     return response.data;
   },
   
   logout: async () => {
-    const response = await api.post('/auth/logout');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    return { success: true };
+  },
+  
+  validateToken: async (token: string) => {
+    const response = await api.post('/api/auth/validate', { token });
     return response.data;
   },
   
   getProfile: async () => {
-    const response = await api.get('/auth/profile');
+    const response = await api.get('/api/users/me');
     return response.data;
   },
 };
 
 // URL API
 export const urlAPI = {
-  shorten: async (originalUrl: string) => {
-    const response = await api.post('/urls/shorten', { originalUrl });
+  shorten: async (originalUrl: string, customAlias?: string) => {
+    const response = await api.post('/api/urls', { 
+      originalUrl,
+      customAlias: customAlias || undefined
+    });
     return response.data;
   },
   
-  getUrls: async () => {
-    const response = await api.get('/urls');
+  getUrls: async (page = 1, limit = 10, active?: boolean) => {
+    const query = new URLSearchParams();
+    query.append('page', page.toString());
+    query.append('limit', limit.toString());
+    if (active !== undefined) query.append('active', active.toString());
+    
+    const response = await api.get(`/api/urls?${query.toString()}`);
     return response.data;
   },
   
-  getUrl: async (id: string) => {
-    const response = await api.get(`/urls/${id}`);
+  getUrl: async (shortCode: string) => {
+    const response = await api.get(`/api/urls/${shortCode}`);
     return response.data;
   },
   
-  deleteUrl: async (id: string) => {
-    const response = await api.delete(`/urls/${id}`);
+  updateUrl: async (shortCode: string, data: {
+    active?: boolean;
+    expiresAt?: string;
+    metadata?: Record<string, any>;
+  }) => {
+    const response = await api.put(`/api/urls/${shortCode}`, data);
     return response.data;
   },
   
-  getAnalytics: async (id: string) => {
-    const response = await api.get(`/urls/${id}/analytics`);
+  disableUrl: async (shortCode: string) => {
+    const response = await api.post(`/api/urls/${shortCode}/disable`);
     return response.data;
   },
+  
+  getUrlStats: async (shortCode: string) => {
+    const response = await api.get(`/api/urls/${shortCode}/stats`);
+    return response.data;
+  }
 };
 
 // Analytics API
 export const analyticsAPI = {
-  getDashboardStats: async () => {
-    const response = await api.get('/analytics/dashboard');
+  getOverview: async (period: string = 'week') => {
+    const response = await api.get(`/api/analytics/overview?period=${period}`);
     return response.data;
   },
   
-  getUrlStats: async (urlId: string, period: string = '7d') => {
-    const response = await api.get(`/analytics/urls/${urlId}?period=${period}`);
+  getUrlAnalytics: async (shortCode: string, period: string = 'month') => {
+    const response = await api.get(`/api/analytics/urls/${shortCode}?period=${period}`);
     return response.data;
   },
   
-  getClickHistory: async (urlId: string) => {
-    const response = await api.get(`/analytics/urls/${urlId}/clicks`);
+  getClicksTimeseries: async (params: {
+    shortCode?: string;
+    period?: string;
+    range?: string;
+  } = {}) => {
+    const query = new URLSearchParams();
+    if (params.shortCode) query.append('shortCode', params.shortCode);
+    if (params.period) query.append('period', params.period);
+    if (params.range) query.append('range', params.range);
+    
+    const response = await api.get(`/api/analytics/clicks/timeseries?${query.toString()}`);
     return response.data;
   },
+  
+  getSummary: async () => {
+    const response = await api.get('/api/analytics/summary');
+    return response.data;
+  }
+};
+
+// Notifications API
+export const notificationAPI = {
+  getNotifications: async (page = 1, limit = 10, filters?: {
+    read?: boolean;
+    type?: string;
+  }) => {
+    const query = new URLSearchParams();
+    query.append('page', page.toString());
+    query.append('limit', limit.toString());
+    if (filters?.read !== undefined) query.append('read', filters.read.toString());
+    if (filters?.type) query.append('type', filters.type);
+    
+    const response = await api.get(`/api/notifications?${query.toString()}`);
+    return response.data;
+  },
+  
+  getUnreadCount: async () => {
+    const response = await api.get('/api/notifications/unread-count');
+    return response.data;
+  },
+  
+  markAsRead: async (notificationId: string) => {
+    const response = await api.put(`/api/notifications/${notificationId}/read`);
+    return response.data;
+  },
+  
+  markAllAsRead: async () => {
+    const response = await api.put('/api/notifications/mark-all-read');
+    return response.data;
+  },
+  
+  getPreferences: async () => {
+    const response = await api.get('/api/notifications/preferences');
+    return response.data;
+  },
+  
+  updatePreferences: async (preferences: {
+    email?: boolean;
+    push?: boolean;
+    inApp?: boolean;
+    emailFrequency?: string;
+    notificationSettings?: Record<string, boolean>;
+  }) => {
+    const response = await api.put('/api/notifications/preferences', preferences);
+    return response.data;
+  }
 };
 
 export default api; 

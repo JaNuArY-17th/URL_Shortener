@@ -1,25 +1,67 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Link2, Copy, ExternalLink, Eye, Calendar, TrendingUp } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { urlAPI } from "@/services/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ShortenedUrl {
-  id: string;
-  originalUrl: string;
   shortCode: string;
+  originalUrl: string;
   shortUrl: string;
   createdAt: string;
-  clicks: number;
+  clicks?: number;
+  uniqueVisitors?: number;
+  active?: boolean;
 }
 
 export function UrlShortener() {
   const [url, setUrl] = useState("");
+  const [customAlias, setCustomAlias] = useState("");
+  const [showCustomAlias, setShowCustomAlias] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingUrls, setIsLoadingUrls] = useState(false);
   const [shortenedUrls, setShortenedUrls] = useState<ShortenedUrl[]>([]);
   const { toast } = useToast();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUserUrls();
+    }
+  }, [isAuthenticated]);
+
+  const fetchUserUrls = async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      setIsLoadingUrls(true);
+      const response = await urlAPI.getUrls(1, 5, true);
+      if (response?.data) {
+        setShortenedUrls(response.data.map((url: any) => ({
+          shortCode: url.shortCode,
+          originalUrl: url.originalUrl,
+          shortUrl: `${window.location.origin}/${url.shortCode}`, // Use current domain for display
+          createdAt: url.createdAt,
+          clicks: url.clicks || 0,
+          uniqueVisitors: url.uniqueVisitors || 0,
+          active: url.active
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching URLs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load your URLs",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingUrls(false);
+    }
+  };
 
   const validateUrl = (url: string): boolean => {
     try {
@@ -28,15 +70,6 @@ export function UrlShortener() {
     } catch {
       return false;
     }
-  };
-
-  const generateShortCode = (): string => {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
   };
 
   const handleShorten = async () => {
@@ -60,27 +93,40 @@ export function UrlShortener() {
 
     setIsLoading(true);
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      // Call API to shorten URL
+      const response = await urlAPI.shorten(url, customAlias || undefined);
+      
+      // Add new URL to the list
+      const newUrl: ShortenedUrl = {
+        shortCode: response.shortCode,
+        originalUrl: url,
+        shortUrl: `${window.location.origin}/${response.shortCode}`, // Use current domain
+        createdAt: response.createdAt,
+        clicks: 0,
+        uniqueVisitors: 0,
+        active: true
+      };
 
-    const shortCode = generateShortCode();
-    const newUrl: ShortenedUrl = {
-      id: Date.now().toString(),
-      originalUrl: url,
-      shortCode,
-      shortUrl: `https://short.ly/${shortCode}`,
-      createdAt: new Date().toISOString(),
-      clicks: 0,
-    };
+      setShortenedUrls(prev => [newUrl, ...prev]);
+      setUrl("");
+      setCustomAlias("");
+      setShowCustomAlias(false);
 
-    setShortenedUrls(prev => [newUrl, ...prev]);
-    setUrl("");
-    setIsLoading(false);
-
-    toast({
-      title: "Success!",
-      description: "Your URL has been shortened successfully",
-    });
+      toast({
+        title: "Success!",
+        description: "Your URL has been shortened successfully",
+      });
+    } catch (error) {
+      console.error('Error shortening URL:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to shorten URL",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const copyToClipboard = async (text: string) => {
@@ -121,29 +167,58 @@ export function UrlShortener() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-4">
             <Input
               placeholder="Enter your long URL here..."
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="flex-1"
+              className="w-full"
               onKeyPress={(e) => e.key === 'Enter' && handleShorten()}
             />
-            <Button 
-              onClick={handleShorten} 
-              disabled={isLoading}
-              variant="gradient"
-              size="lg"
-              className="min-w-[120px]"
-            >
-              {isLoading ? "Shortening..." : "Shorten"}
-            </Button>
+            
+            {showCustomAlias && (
+              <div className="flex gap-2 items-center">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">Custom alias:</span>
+                <Input 
+                  placeholder="your-custom-code (optional)"
+                  value={customAlias}
+                  onChange={(e) => setCustomAlias(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowCustomAlias(!showCustomAlias)}
+                className="sm:ml-auto"
+              >
+                {showCustomAlias ? "Hide custom options" : "Custom options"}
+              </Button>
+              
+              <Button 
+                onClick={handleShorten} 
+                disabled={isLoading}
+                variant="gradient"
+                size="lg"
+                className="min-w-[120px]"
+              >
+                {isLoading ? "Shortening..." : "Shorten"}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Results Section */}
-      {shortenedUrls.length > 0 && (
+      {isLoadingUrls ? (
+        <div className="flex justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+        </div>
+      ) : shortenedUrls.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Your Shortened URLs</h2>
@@ -154,7 +229,7 @@ export function UrlShortener() {
 
           <div className="grid gap-4">
             {shortenedUrls.map((item) => (
-              <Card key={item.id} className="shadow-soft hover:shadow-elegant transition-all duration-200 animate-fade-in">
+              <Card key={item.shortCode} className="shadow-soft hover:shadow-elegant transition-all duration-200 animate-fade-in">
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {/* URLs */}
@@ -203,12 +278,14 @@ export function UrlShortener() {
                       </div>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Eye className="h-4 w-4" />
-                        {item.clicks} clicks
+                        {item.clicks || 0} clicks
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-success">
-                        <TrendingUp className="h-4 w-4" />
-                        Active
-                      </div>
+                      {item.active !== false && (
+                        <div className="flex items-center gap-2 text-sm text-success">
+                          <TrendingUp className="h-4 w-4" />
+                          Active
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>

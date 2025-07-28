@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { urlAPI, analyticsAPI } from "@/services/api";
 import { 
   Link2, 
   Copy, 
@@ -15,40 +18,97 @@ import {
   BarChart3,
   Settings,
   User,
-  LogOut
+  LogOut,
+  Loader2
 } from "lucide-react";
 
 interface ShortenedUrl {
-  id: string;
-  originalUrl: string;
   shortCode: string;
+  originalUrl: string;
   shortUrl: string;
   createdAt: string;
   clicks: number;
+  uniqueVisitors?: number;
+  active?: boolean;
+}
+
+interface AnalyticsSummary {
+  totalClicks: number;
+  clicksToday: number;
+  activeUrls: number;
 }
 
 export default function Dashboard() {
+  const { user, logout } = useAuth();
   const [url, setUrl] = useState("");
+  const [customAlias, setCustomAlias] = useState("");
+  const [showCustomAlias, setShowCustomAlias] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [shortenedUrls, setShortenedUrls] = useState<ShortenedUrl[]>([
-    {
-      id: "1",
-      originalUrl: "https://example.com/very-long-url-that-needs-shortening",
-      shortCode: "abc123",
-      shortUrl: "https://short.ly/abc123",
-      createdAt: "2024-01-15T10:30:00Z",
-      clicks: 42
-    },
-    {
-      id: "2", 
-      originalUrl: "https://another-example.com/another-very-long-url",
-      shortCode: "def456",
-      shortUrl: "https://short.ly/def456",
-      createdAt: "2024-01-14T15:45:00Z",
-      clicks: 18
-    }
-  ]);
+  const [isLoadingUrls, setIsLoadingUrls] = useState(true);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [shortenedUrls, setShortenedUrls] = useState<ShortenedUrl[]>([]);
+  const [stats, setStats] = useState<AnalyticsSummary>({
+    totalClicks: 0,
+    clicksToday: 0,
+    activeUrls: 0
+  });
   const { toast } = useToast();
+
+  // Fetch data when component mounts
+  useEffect(() => {
+    fetchUrls();
+    fetchAnalyticsSummary();
+  }, []);
+
+  const fetchUrls = async () => {
+    try {
+      setIsLoadingUrls(true);
+      const response = await urlAPI.getUrls(1, 10);
+      
+      if (response?.data) {
+        setShortenedUrls(response.data.map((url: any) => ({
+          shortCode: url.shortCode,
+          originalUrl: url.originalUrl,
+          shortUrl: `${window.location.origin}/${url.shortCode}`,
+          createdAt: url.createdAt,
+          clicks: url.clicks || 0,
+          uniqueVisitors: url.uniqueVisitors || 0,
+          active: url.active
+        })));
+      } else {
+        setShortenedUrls([]);
+      }
+    } catch (error) {
+      console.error('Error fetching URLs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load your URLs",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingUrls(false);
+    }
+  };
+
+  const fetchAnalyticsSummary = async () => {
+    try {
+      setIsLoadingStats(true);
+      const response = await analyticsAPI.getSummary();
+      
+      if (response) {
+        setStats({
+          totalClicks: response.totalClicks || 0,
+          clicksToday: response.clicksToday || 0,
+          activeUrls: response.activeUrls || 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching analytics summary:', error);
+      // Don't show error toast for analytics to avoid overwhelming the user
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
 
   const validateUrl = (url: string): boolean => {
     try {
@@ -57,15 +117,6 @@ export default function Dashboard() {
     } catch {
       return false;
     }
-  };
-
-  const generateShortCode = (): string => {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
   };
 
   const handleShorten = async () => {
@@ -89,27 +140,48 @@ export default function Dashboard() {
 
     setIsLoading(true);
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      // Call API to create short URL
+      const response = await urlAPI.shorten(url, customAlias || undefined);
+      
+      // Add new URL to the list
+      const newUrl: ShortenedUrl = {
+        shortCode: response.shortCode,
+        originalUrl: url,
+        shortUrl: `${window.location.origin}/${response.shortCode}`,
+        createdAt: response.createdAt || new Date().toISOString(),
+        clicks: 0,
+        uniqueVisitors: 0,
+        active: true
+      };
 
-    const shortCode = generateShortCode();
-    const newUrl: ShortenedUrl = {
-      id: Date.now().toString(),
-      originalUrl: url,
-      shortCode,
-      shortUrl: `https://short.ly/${shortCode}`,
-      createdAt: new Date().toISOString(),
-      clicks: 0,
-    };
+      setShortenedUrls(prev => [newUrl, ...prev]);
+      
+      // Update URL count in stats
+      setStats(prev => ({
+        ...prev,
+        activeUrls: prev.activeUrls + 1
+      }));
 
-    setShortenedUrls(prev => [newUrl, ...prev]);
-    setUrl("");
-    setIsLoading(false);
+      // Reset form
+      setUrl("");
+      setCustomAlias("");
+      setShowCustomAlias(false);
 
-    toast({
-      title: "Success!",
-      description: "Your URL has been shortened successfully",
-    });
+      toast({
+        title: "Success!",
+        description: "Your URL has been shortened successfully",
+      });
+    } catch (error) {
+      console.error('Error shortening URL:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to shorten URL",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const copyToClipboard = async (text: string) => {
@@ -136,9 +208,6 @@ export default function Dashboard() {
     });
   };
 
-  const totalClicks = shortenedUrls.reduce((sum, url) => sum + url.clicks, 0);
-  const totalUrls = shortenedUrls.length;
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -157,22 +226,48 @@ export default function Dashboard() {
           </div>
 
           <nav className="hidden md:flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Analytics
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2"
+              asChild
+            >
+              <Link to="/analytics">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </Link>
             </Button>
-            <Button variant="ghost" size="sm" className="gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2"
+              asChild
+            >
+              <Link to="/settings">
+                <Settings className="h-4 w-4" />
+                Settings
+              </Link>
             </Button>
           </nav>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2">
-              <User className="h-4 w-4" />
-              John Doe
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              asChild
+            >
+              <Link to="/settings">
+                <User className="h-4 w-4" />
+                {user?.name || 'Account'}
+              </Link>
             </Button>
-            <Button variant="ghost" size="sm" className="gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => logout()}
+            >
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -187,7 +282,13 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total URLs</p>
-                  <p className="text-2xl font-bold">{totalUrls}</p>
+                  {isLoadingStats ? (
+                    <div className="h-8 flex items-center">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <p className="text-2xl font-bold">{stats.activeUrls}</p>
+                  )}
                 </div>
                 <div className="p-3 bg-gradient-primary rounded-full">
                   <Link2 className="h-6 w-6 text-white" />
@@ -201,7 +302,13 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Clicks</p>
-                  <p className="text-2xl font-bold">{totalClicks}</p>
+                  {isLoadingStats ? (
+                    <div className="h-8 flex items-center">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <p className="text-2xl font-bold">{stats.totalClicks}</p>
+                  )}
                 </div>
                 <div className="p-3 bg-gradient-primary rounded-full">
                   <TrendingUp className="h-6 w-6 text-white" />
@@ -214,10 +321,14 @@ export default function Dashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Avg. Clicks</p>
-                  <p className="text-2xl font-bold">
-                    {totalUrls > 0 ? Math.round(totalClicks / totalUrls) : 0}
-                  </p>
+                  <p className="text-sm font-medium text-muted-foreground">Clicks Today</p>
+                  {isLoadingStats ? (
+                    <div className="h-8 flex items-center">
+                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : (
+                    <p className="text-2xl font-bold">{stats.clicksToday}</p>
+                  )}
                 </div>
                 <div className="p-3 bg-gradient-primary rounded-full">
                   <BarChart3 className="h-6 w-6 text-white" />
@@ -239,40 +350,88 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-4">
               <Input
                 placeholder="Enter your long URL here..."
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                className="flex-1"
-                onKeyPress={(e) => e.key === 'Enter' && handleShorten()}
+                className="w-full"
+                onKeyPress={(e) => e.key === 'Enter' && !showCustomAlias && handleShorten()}
               />
-              <Button 
-                onClick={handleShorten} 
-                disabled={isLoading}
-                variant="gradient"
-                size="lg"
-                className="min-w-[120px]"
-              >
-                {isLoading ? "Shortening..." : "Shorten"}
-              </Button>
+              
+              {showCustomAlias && (
+                <div className="flex gap-2 items-center">
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">Custom alias:</span>
+                  <Input 
+                    placeholder="your-custom-code (optional)"
+                    value={customAlias}
+                    onChange={(e) => setCustomAlias(e.target.value)}
+                    className="flex-1"
+                    onKeyPress={(e) => e.key === 'Enter' && handleShorten()}
+                  />
+                </div>
+              )}
+
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowCustomAlias(!showCustomAlias)}
+                  className="sm:ml-auto"
+                >
+                  {showCustomAlias ? "Hide custom options" : "Custom options"}
+                </Button>
+                
+                <Button 
+                  onClick={handleShorten} 
+                  disabled={isLoading}
+                  variant="gradient"
+                  size="lg"
+                  className="min-w-[120px]"
+                >
+                  {isLoading ? "Shortening..." : "Shorten"}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* URLs List */}
-        {shortenedUrls.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">Your Shortened URLs</h2>
-              <Badge variant="secondary" className="text-sm">
-                {shortenedUrls.length} {shortenedUrls.length === 1 ? 'URL' : 'URLs'}
-              </Badge>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Your Shortened URLs</h2>
+            <div className="flex items-center gap-2">
+              {!isLoadingUrls && (
+                <Badge variant="secondary" className="text-sm">
+                  {shortenedUrls.length} {shortenedUrls.length === 1 ? 'URL' : 'URLs'}
+                </Badge>
+              )}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="gap-2"
+                asChild
+              >
+                <Link to="/analytics">
+                  <BarChart3 className="h-4 w-4" />
+                  View Analytics
+                </Link>
+              </Button>
             </div>
+          </div>
 
+          {isLoadingUrls ? (
+            <div className="flex justify-center py-16">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Loading your URLs...</p>
+              </div>
+            </div>
+          ) : shortenedUrls.length > 0 ? (
             <div className="grid gap-4">
               {shortenedUrls.map((item) => (
-                <Card key={item.id} className="shadow-soft hover:shadow-elegant transition-all duration-200">
+                <Card key={item.shortCode} className="shadow-soft hover:shadow-elegant transition-all duration-200">
                   <CardContent className="p-6">
                     <div className="space-y-4">
                       {/* URLs */}
@@ -314,23 +473,46 @@ export default function Dashboard() {
                       </div>
 
                       {/* Stats */}
-                      <div className="flex items-center gap-6 pt-2 border-t">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Eye className="h-4 w-4" />
-                          <span>{item.clicks} clicks</span>
+                      <div className="flex items-center justify-between gap-6 pt-2 border-t">
+                        <div className="flex items-center gap-6">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Eye className="h-4 w-4" />
+                            <span>{item.clicks} clicks</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="h-4 w-4" />
+                            <span>{formatDate(item.createdAt)}</span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-4 w-4" />
-                          <span>{formatDate(item.createdAt)}</span>
-                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="gap-2 text-xs"
+                          asChild
+                        >
+                          <Link to={`/analytics?url=${item.shortCode}`}>
+                            <BarChart3 className="h-3 w-3" />
+                            Details
+                          </Link>
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-16 border rounded-lg bg-muted/30">
+              <div className="mx-auto w-16 h-16 flex items-center justify-center rounded-full bg-primary/10 mb-4">
+                <Link2 className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-medium mb-2">No URLs found</h3>
+              <p className="text-muted-foreground mb-6">
+                You haven't created any short URLs yet. Create your first one above.
+              </p>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
