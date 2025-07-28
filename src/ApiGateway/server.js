@@ -16,15 +16,27 @@ const setupProxyRoutes = require('./routes/proxy');
 
 // Khởi tạo express app
 const app = express();
-app.set('trust proxy', true);
+
+// Cấu hình tin tưởng proxy của Render hoặc các proxy đáng tin cậy
+app.set('trust proxy', 'loopback, linklocal, uniquelocal');
+
+// HOẶC cài đặt số hop proxy nếu biết chắc
+// app.set('trust proxy', 1);  // Tin tưởng 1 proxy đầu tiên
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: config.rateLimit.windowMs,
-  max: config.rateLimit.max,
+  windowMs: 15 * 60 * 1000, // 15 phút
+  max: 100, // Giới hạn request từ mỗi IP
   standardHeaders: true,
   legacyHeaders: false,
-  message: config.rateLimit.message
+  // Quan trọng: Cấu hình keyGenerator an toàn
+  keyGenerator: (req, res) => {
+    // Lấy IP đã được xác thực qua cơ chế trust proxy
+    return req.ip; // Express xử lý an toàn khi đã cấu hình trust proxy đúng
+  },
+  // Chỉ định rõ trustProxy là false trong express-rate-limit
+  // để nó sử dụng cấu hình trust proxy của Express thay vì cấu hình riêng
+  trustProxy: false
 });
 
 // Apply middlewares
