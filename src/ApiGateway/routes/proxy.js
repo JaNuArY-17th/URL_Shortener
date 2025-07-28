@@ -87,49 +87,49 @@ const createProxyWithLogging = (target, pathRewrite = {}, requireAuth = false, i
 // Cấu hình các routes proxy
 const setupProxyRoutes = (app) => {
   // Auth Service Routes
-  // app.use('/api/auth', ...createProxyWithLogging(
-  //   config.services.auth,
-  //   { '^/api/auth': '/api/auth' }
-  // ));
+  app.use('/api/auth', ...createProxyWithLogging(
+    config.services.auth,
+    { '^/api/auth': '/api/auth' }
+  ));
   
-  // app.use('/api/users', ...createProxyWithLogging(
-  //   config.services.auth,
-  //   { '^/api/users': '/api/users' },
-  //   true // Yêu cầu xác thực
-  // ));
+  app.use('/api/users', ...createProxyWithLogging(
+    config.services.auth,
+    { '^/api/users': '/api/users' },
+    true // Yêu cầu xác thực
+  ));
   
-  // // URL Shortener Service Routes
-  // app.use('/api/urls/create', ...createProxyWithLogging(
-  //   config.services.urlShortener,
-  //   { '^/api/urls/create': '/api/urls' }
-  // ));
+  // URL Shortener Service Routes
+  app.use('/api/urls/create', ...createProxyWithLogging(
+    config.services.urlShorteners,
+    { '^/api/urls/create': '/api/urls' }
+  ));
   
-  // // Redirect Service - URL Management Routes
-  // app.use('/api/urls', ...createProxyWithLogging(
-  //   config.services.redirect,
-  //   { '^/api/urls': '/api/urls' },
-  //   true // Yêu cầu xác thực
-  // ));
+  // Redirect Service - URL Management Routes
+  app.use('/api/urls', ...createProxyWithLogging(
+    config.services.redirect,
+    { '^/api/urls': '/api/urls' },
+    true // Yêu cầu xác thực
+  ));
   
-  // // Redirect Service - Redirect Route
-  // app.use('/:shortCode([a-zA-Z0-9]{6,10})', ...createProxyWithLogging(
-  //   config.services.redirect,
-  //   {} // Không thay đổi path
-  // ));
+  // Redirect Service - Redirect Route
+  app.use('/:shortCode([a-zA-Z0-9]{6,10})', ...createProxyWithLogging(
+    config.services.redirect,
+    {} // Không thay đổi path
+  ));
   
-  // // Analytics Service Routes
-  // app.use('/api/analytics', ...createProxyWithLogging(
-  //   config.services.analytics,
-  //   { '^/api/analytics': '/api/analytics' },
-  //   true // Yêu cầu xác thực
-  // ));
+  // Analytics Service Routes
+  app.use('/api/analytics', ...createProxyWithLogging(
+    config.services.analytics,
+    { '^/api/analytics': '/api/analytics' },
+    true // Yêu cầu xác thực
+  ));
   
-  // // Notification Service Routes
-  // app.use('/api/notifications', ...createProxyWithLogging(
-  //   config.services.notification,
-  //   { '^/api/notifications': '/api/notifications' },
-  //   true // Yêu cầu xác thực
-  // ));
+  // Notification Service Routes
+  app.use('/api/notifications', ...createProxyWithLogging(
+    config.services.notification,
+    { '^/api/notifications': '/api/notifications' },
+    true // Yêu cầu xác thực
+  ));
   
   // API Docs routes
   app.use('/auth/api-docs', ...createProxyWithLogging(
