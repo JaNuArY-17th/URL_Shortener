@@ -57,6 +57,34 @@ const { v4: uuidv4 } = require('uuid');
  *         description: URL với shortCode đã tồn tại
  *       500:
  *         description: Lỗi máy chủ
+ *   get:
+ *     summary: Get all URLs with pagination
+ *     description: Retrieves a list of URLs with pagination
+ *     tags:
+ *       - URL Management
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Number of items per page
+ *       - in: query
+ *         name: active
+ *         schema:
+ *           type: boolean
+ *         description: Filter by active status
+ *     responses:
+ *       200:
+ *         description: A list of URLs
+ *       500:
+ *         description: Server error
  */
 router.post('/', async (req, res, next) => {
   try {
@@ -109,36 +137,7 @@ router.post('/', async (req, res, next) => {
 });
 
 /**
- * @swagger
- * /api/urls:
- *   get:
- *     summary: Get all URLs with pagination
- *     description: Retrieves a list of URLs with pagination
- *     tags:
- *       - URL Management
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Number of items per page
- *       - in: query
- *         name: active
- *         schema:
- *           type: boolean
- *         description: Filter by active status
- *     responses:
- *       200:
- *         description: A list of URLs
- *       500:
- *         description: Server error
+ * (Được gộp vào block Swagger phía trên) 
  */
 router.get('/', async (req, res, next) => {
   try {

@@ -106,9 +106,8 @@ const setupProxyRoutes = (app) => {
   ));
   
   // URL Shortener Service Routes
-  app.use('/api/urls/create', ...createProxyWithLogging(
+  app.use('/api/Urls', ...createProxyWithLogging(
     config.services.urlShorteners,
-    (path) => '/api/urls' + path
   ));
   
   // Redirect Service - URL Management Routes
