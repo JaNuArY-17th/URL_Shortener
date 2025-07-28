@@ -5,6 +5,14 @@ const authenticate = require('../middleware/authenticate');
 
 // Helper để tạo proxy middleware với logging và error handling
 const createProxyWithLogging = (target, pathRewrite = {}, requireAuth = false, isSwaggerUI = false) => {
+  // Nếu pathRewrite được truyền là undefined hoặc null, chuyển thành object rỗng
+  if (pathRewrite == null) {
+    pathRewrite = {};
+  }
+  // Nếu pathRewrite không phải object hay function hợp lệ, ghi log cảnh báo và bỏ qua
+  const validPathRewrite = (typeof pathRewrite === 'function') ||
+                           (typeof pathRewrite === 'object' && Object.keys(pathRewrite).length > 0);
+
   const middleware = [];
   
   // Thêm middleware xác thực nếu cần
@@ -16,7 +24,8 @@ const createProxyWithLogging = (target, pathRewrite = {}, requireAuth = false, i
   const options = {
     target,
     changeOrigin: true,
-    pathRewrite,
+    // Chỉ thêm pathRewrite khi hợp lệ để tránh ERR_PATH_REWRITER_CONFIG
+    ...(validPathRewrite ? { pathRewrite } : {}),
     logLevel: 'silent', // Tắt logs mặc định của http-proxy-middleware
     onProxyReq: (proxyReq, req, res) => {
       // Ghi log khi gửi proxy request
@@ -105,16 +114,16 @@ const setupProxyRoutes = (app) => {
     true // Yêu cầu xác thực
   ));
   
-  // URL Shortener Service Routes
-  app.use('/api/Urls', ...createProxyWithLogging(
-    config.services.urlShorteners,
-  ));
-  
-  // Redirect Service - URL Management Routes
+  // Redirect Service - URL Management Routes (đặt trước để tránh bị route /api/Urls bắt)
   app.use('/api/urls', ...createProxyWithLogging(
     config.services.redirect,
-    (path) => '/api/urls' + path,
-    true // Yêu cầu xác thực
+    {}, // Không pathRewrite
+    false // Không yêu cầu auth (có thể bật lại nếu cần)
+  ));
+
+  // URL Shortener Service Routes (giữ nguyên phía sau để tránh đè lên /api/urls)
+  app.use('/api/Urls', ...createProxyWithLogging(
+    config.services.urlShorteners,
   ));
   
   // Redirect Service - Redirect Route

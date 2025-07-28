@@ -766,3 +766,13 @@
 {"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:14:54:22 +0000] \"POST /api/Urls HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 21:54:22"}
 {"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:14:58:29 +0000] \"POST /api/Urls HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 21:58:29"}
 {"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:15:13:17 +0000] \"POST /api/Urls HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 22:13:17"}
+{"level":"info","message":"API Gateway đang chạy tại http://localhost:5000","service":"api-gateway","timestamp":"2025-07-28 22:29:03"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:15:30:13 +0000] \"POST /api/Urls HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 22:30:13"}
+{"level":"warn","message":"Proxy response: 405 for GET /api/urls","method":"GET","path":"/api/urls","requestId":"33812b6e-a855-4d01-9ca1-d2876eabbbff","service":"api-gateway","statusCode":405,"target":"https://urlshortenerservice-407v.onrender.com","timestamp":"2025-07-28 22:30:49"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:15:30:49 +0000] \"GET /api/urls HTTP/1.1\" 405 0 \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 22:30:49"}
+{"level":"info","message":"API Gateway đang chạy tại http://localhost:5000","service":"api-gateway","timestamp":"2025-07-28 22:32:18"}
+{"level":"warn","message":"Proxy response: 405 for GET /api/urls","method":"GET","path":"/api/urls","requestId":"e83ea0c0-a535-4ad2-a052-d60fb0a2e02f","service":"api-gateway","statusCode":405,"target":"https://urlshortenerservice-407v.onrender.com","timestamp":"2025-07-28 22:32:27"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:15:32:27 +0000] \"GET /api/urls HTTP/1.1\" 405 0 \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 22:32:27"}
+{"level":"info","message":"API Gateway đang chạy tại http://localhost:5000","service":"api-gateway","timestamp":"2025-07-28 22:35:50"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:15:35:56 +0000] \"GET /api/urls HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 22:35:56"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:15:37:14 +0000] \"GET /api/urls/VXhG5J HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 22:37:14"}
