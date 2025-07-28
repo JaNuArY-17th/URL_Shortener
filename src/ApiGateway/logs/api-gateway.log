@@ -765,3 +765,4 @@
 {"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:14:51:49 +0000] \"GET /api/urls?shortCode=E2tRwU HTTP/1.1\" 405 0 \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 21:51:49"}
 {"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:14:54:22 +0000] \"POST /api/Urls HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 21:54:22"}
 {"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:14:58:29 +0000] \"POST /api/Urls HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 21:58:29"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [28/Jul/2025:15:13:17 +0000] \"POST /api/Urls HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-28 22:13:17"}

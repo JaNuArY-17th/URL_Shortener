@@ -124,11 +124,25 @@ const startConsuming = async () => {
     async (msg) => {
       try {
         if (msg) {
-          const content = JSON.parse(msg.content.toString());
+          const raw = JSON.parse(msg.content.toString());
+          // Chuyển đổi field PascalCase (từ .NET) sang camelCase cho Node
+          const content = {
+            shortCode: raw.shortCode || raw.ShortCode,
+            originalUrl: raw.originalUrl || raw.OriginalUrl,
+            userId: raw.userId || raw.UserId || null,
+            expiresAt: raw.expiresAt || raw.ExpiresAt || null,
+            metadata: raw.metadata || raw.Metadata || {}
+          };
           logger.info('Received URL created event:', { 
             shortCode: content.shortCode,
             routingKey: msg.fields.routingKey
           });
+          
+          if (!content.shortCode || !content.originalUrl) {
+            logger.error('Invalid UrlCreatedEvent payload – missing shortCode/originalUrl', { rawEvent: raw });
+            channel.nack(msg, false, false);
+            return;
+          }
           
           // Lưu URL vào database
           try {
