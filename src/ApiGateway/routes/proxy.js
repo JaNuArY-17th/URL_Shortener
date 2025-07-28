@@ -95,15 +95,13 @@ const createProxyWithLogging = (target, pathRewrite = {}, requireAuth = false, i
 // Cấu hình các routes proxy
 const setupProxyRoutes = (app) => {
   // Auth Service Routes
-  // Vì Express remove mount path, ta cần thêm lại '/api/auth' khi proxy
   app.use('/api/auth', ...createProxyWithLogging(
-    config.services.auth,
-    (path) => '/api/auth' + path
+    config.services.auth
   ));
   
   app.use('/api/users', ...createProxyWithLogging(
     config.services.auth,
-    (path) => '/api/users' + path,
+    undefined,
     true // Yêu cầu xác thực
   ));
   
