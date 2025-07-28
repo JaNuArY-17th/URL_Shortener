@@ -26,6 +26,14 @@ const createProxyWithLogging = (target, pathRewrite = {}, requireAuth = false, i
         target,
         requestId: req.id
       });
+
+      // ----- Re-stream body nếu đã được express.json() parse -----
+      if (req.body && Object.keys(req.body).length && req.headers['content-type']?.includes('application/json')) {
+        const bodyData = JSON.stringify(req.body);
+        proxyReq.setHeader('Content-Type', 'application/json');
+        proxyReq.setHeader('Content-Length', Buffer.byteLength(bodyData));
+        proxyReq.write(bodyData);
+      }
     },
     onProxyRes: (proxyRes, req, res) => {
       // Xử lý CSP headers cho Swagger UI
