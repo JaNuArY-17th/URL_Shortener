@@ -16,6 +16,7 @@ const setupProxyRoutes = require('./routes/proxy');
 
 // Khởi tạo express app
 const app = express();
+app.set('trust proxy', true);
 
 // Rate limiting
 const limiter = rateLimit({
