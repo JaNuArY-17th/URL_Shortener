@@ -91,6 +91,10 @@ const setupProxyRoutes = (app) => {
     config.services.auth,
     { '^/api/auth': '/api/auth' }
   ));
+  app.use('/api/auth/login', ...createProxyWithLogging(
+    config.services.auth,
+    { '^/api/auth/login': '/api/auth/login' }
+  ));
   
   app.use('/api/users', ...createProxyWithLogging(
     config.services.auth,
