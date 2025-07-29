@@ -138,10 +138,10 @@ const Analytics = () => {
         description: "Failed to load analytics data",
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   // Function to fetch available URLs for the dropdown
   const fetchAvailableUrls = async () => {
@@ -522,8 +522,8 @@ const Analytics = () => {
                             </tbody>
                           </table>
                         </div>
-                      </div>
-                    ) : (
+          </div>
+        ) : (
                       <div className="h-40 flex items-center justify-center">
                         <p className="text-muted-foreground">No click data available for the selected period</p>
                       </div>
@@ -532,11 +532,11 @@ const Analytics = () => {
                 </Card>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="shadow-soft">
-                    <CardHeader>
+          <Card className="shadow-soft">
+            <CardHeader>
                       <CardTitle>Export Options</CardTitle>
-                    </CardHeader>
-                    <CardContent>
+            </CardHeader>
+            <CardContent>
                       <div className="flex flex-col gap-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -597,7 +597,7 @@ const Analytics = () => {
                     <CardContent className="max-h-60 overflow-auto">
                       <pre className="text-xs">
                         {JSON.stringify(timeseries, null, 2)}
-                      </pre>
+              </pre>
                     </CardContent>
                   </Card> */}
                 </div>
@@ -765,8 +765,8 @@ const Analytics = () => {
                             <p className="text-muted-foreground">No daily click data available</p>
                           </div>
                         )}
-                      </CardContent>
-                    </Card>
+            </CardContent>
+          </Card>
                   </>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-60">

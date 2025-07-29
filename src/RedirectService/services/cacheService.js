@@ -184,6 +184,16 @@ class CacheService {
   }
   
   /**
+   * Invalidate (delete) a URL from cache
+   * Alias for deleteUrl to maintain backwards compatibility
+   * @param {string} shortCode - Short code to delete
+   * @returns {Promise<boolean>} - True if deleted successfully
+   */
+  async invalidateUrl(shortCode) {
+    return this.deleteUrl(shortCode);
+  }
+
+  /**
    * Pre-warm cache with popular URLs
    * @param {Array<{shortCode: string, originalUrl: string, popularity: number}>} urls - URLs to cache
    * @returns {Promise<number>} - Number of URLs successfully cached
