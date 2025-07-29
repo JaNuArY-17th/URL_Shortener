@@ -237,8 +237,38 @@ export const analyticsAPI = {
   },
   
   getUrlAnalytics: async (shortCode: string, period: string = 'month') => {
-    const response = await api.get(`/api/analytics/urls/${shortCode}?period=${period}`);
-    return response.data;
+    try {
+      const response = await api.get(`/api/analytics/urls/${shortCode}?period=${period}`);
+      // Adapt to the actual response structure
+      const data = response.data;
+      return {
+        shortCode: data.shortCode,
+        originalUrl: data.originalUrl || '',
+        clicks: data.totalClicks || 0,
+        uniqueVisitors: data.uniqueVisitors || 0,
+        createdAt: data.createdAt,
+        lastAccessedAt: data.lastClickAt,
+        referrers: Object.entries(data.refererStats || {}).map(([source, count]) => ({ 
+          source, count: count as number 
+        })),
+        browsers: Object.entries(data.browserStats || {}).map(([name, count]) => ({ 
+          name, count: count as number 
+        })) || [],
+        devices: Object.entries(data.deviceStats || {}).map(([type, count]) => ({ 
+          type, count: count as number 
+        })),
+        locations: Object.entries(data.countryStats || {}).map(([country, count]) => ({ 
+          country, count: count as number 
+        })),
+        clicksByDay: data.dailyClicks?.map((item: any) => ({
+          date: item.dayName || item.day.toString(),
+          clicks: item.count
+        })) || []
+      };
+    } catch (error) {
+      console.error('Error in getUrlAnalytics:', error);
+      throw error;
+    }
   },
   
   getClicksTimeseries: async (params: {
@@ -246,13 +276,34 @@ export const analyticsAPI = {
     period?: string;
     range?: string;
   } = {}) => {
-    const query = new URLSearchParams();
-    if (params.shortCode) query.append('shortCode', params.shortCode);
-    if (params.period) query.append('period', params.period);
-    if (params.range) query.append('range', params.range);
-    
-    const response = await api.get(`/api/analytics/clicks/timeseries?${query.toString()}`);
-    return response.data;
+    try {
+      const query = new URLSearchParams();
+      if (params.shortCode) query.append('shortCode', params.shortCode);
+      if (params.period) query.append('period', params.period);
+      if (params.range) query.append('range', params.range);
+      
+      const response = await api.get(`/api/analytics/clicks/timeseries?${query.toString()}`);
+      const data = response.data;
+      
+      // Adapt to the expected structure in the UI
+      if (data.timeSeries && Array.isArray(data.timeSeries)) {
+        const labels = data.timeSeries.map((item: any) => {
+          // Format timestamp into a readable date string
+          const date = new Date(item.timestamp);
+          return date.toLocaleDateString();
+        });
+        
+        const clicks = data.timeSeries.map((item: any) => item.clicks || 0);
+        const uniqueVisitors = data.timeSeries.map((item: any) => item.uniqueVisitors || 0);
+        
+        return { labels, clicks, uniqueVisitors };
+      }
+      
+      return { labels: [], clicks: [], uniqueVisitors: [] };
+    } catch (error) {
+      console.error('Error in getClicksTimeseries:', error);
+      throw error;
+    }
   },
   
   getSummary: async () => {

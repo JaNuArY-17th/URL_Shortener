@@ -10,6 +10,12 @@ const config = {
       uri: process.env.MONGODB_URI || 'mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/redirect?retryWrites=true&w=majority&appName=Cluster1'
     }
   },
+  
+  jwt: {
+    secret: process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production',
+    expiresIn: process.env.JWT_EXPIRES_IN || '24h'
+  },
+
   redis: {
     uri: process.env.REDIS_URI || 'redis://localhost:6379',
     cacheExpiry: parseInt(process.env.REDIS_CACHE_EXPIRY) || 3600, // 1 hour in seconds

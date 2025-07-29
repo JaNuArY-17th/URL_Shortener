@@ -3,6 +3,7 @@ const router = express.Router();
 const Url = require('../models/Url');
 const cacheService = require('../services/cacheService');
 const logger = require('../services/logger');
+const { authenticate, authenticateOptional, isUrlOwner } = require('../middleware/authenticate');
 const { v4: uuidv4 } = require('uuid');
 
 /**
@@ -13,6 +14,8 @@ const { v4: uuidv4 } = require('uuid');
  *     description: Lưu URL mới từ UrlShortenerService vào database
  *     tags:
  *       - URL Management
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -53,6 +56,8 @@ const { v4: uuidv4 } = require('uuid');
  *         description: URL đã được lưu thành công
  *       400:
  *         description: Dữ liệu không hợp lệ
+ *       401:
+ *         description: Không được xác thực
  *       409:
  *         description: URL với shortCode đã tồn tại
  *       500:
@@ -62,6 +67,8 @@ const { v4: uuidv4 } = require('uuid');
  *     description: Retrieves a list of URLs with pagination
  *     tags:
  *       - URL Management
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: page
@@ -88,12 +95,18 @@ const { v4: uuidv4 } = require('uuid');
  *     responses:
  *       200:
  *         description: A list of URLs
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Server error
  */
-router.post('/', async (req, res, next) => {
+router.post('/', authenticateOptional, async (req, res, next) => {
   try {
-    const { shortCode, originalUrl, userId, expiresAt, metadata } = req.body;
+    const { shortCode, originalUrl, expiresAt, metadata } = req.body;
+    
+    // Set userId either from request body or from authenticated user
+    // Allowing the system to create URLs directly as needed
+    const userId = req.body.userId || req.user?.id || null;
     
     // Validate input
     if (!shortCode || !originalUrl) {
@@ -114,7 +127,7 @@ router.post('/', async (req, res, next) => {
     const url = new Url({
       shortCode,
       originalUrl,
-      userId: userId || null,
+      userId,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
       metadata: metadata || {}
     });
@@ -144,23 +157,37 @@ router.post('/', async (req, res, next) => {
 /**
  * (Được gộp vào block Swagger phía trên) 
  */
-router.get('/', async (req, res, next) => {
+router.get('/', authenticateOptional, async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     
+    // Build filter
     const filter = {};
+    
+    // Filter by active status if provided
     if (req.query.active !== undefined) {
       filter.active = req.query.active === 'true';
     }
+    
+    // Filter by userId - either from the query or from authenticated user
     if (req.query.userId) {
       filter.userId = req.query.userId;
+    } else if (req.user?.id) {
+      // If no specific userId in query but user is authenticated, 
+      // only return their URLs
+      filter.userId = req.user.id;
     }
+    
+    // Get sorting parameters
+    const sortBy = req.query.sortBy || 'createdAt';
+    const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+    const sortOptions = { [sortBy]: sortOrder };
     
     const urls = await Url.find(filter)
       .select('-visitorHistory') // Exclude large fields
-      .sort({ createdAt: -1 })
+      .sort(sortOptions)
       .skip(skip)
       .limit(limit);
       
@@ -189,6 +216,8 @@ router.get('/', async (req, res, next) => {
  *     description: Get detailed information about a URL by its short code
  *     tags:
  *       - URL Management
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: shortCode
@@ -199,12 +228,16 @@ router.get('/', async (req, res, next) => {
  *     responses:
  *       200:
  *         description: URL details
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the owner
  *       404:
  *         description: URL not found
  *       500:
  *         description: Server error
  */
-router.get('/:shortCode', async (req, res, next) => {
+router.get('/:shortCode', authenticateOptional, async (req, res, next) => {
   try {
     const { shortCode } = req.params;
     
@@ -219,6 +252,21 @@ router.get('/:shortCode', async (req, res, next) => {
       const error = new Error(`URL with short code ${shortCode} not found`);
       error.statusCode = 404;
       return next(error);
+    }
+    
+    // If URL has an owner and user is authenticated, verify ownership
+    if (url.userId && req.user?.id) {
+      const isOwner = url.userId.toString() === req.user.id.toString();
+      // If not the owner, admin users might still have access
+      if (!isOwner && req.user.role !== 'admin') {
+        const isPublic = !req.query.requireOwnership;
+        // Allow non-owners to view but note this in the response
+        if (!isPublic) {
+          const error = new Error('You do not have permission to view this URL details');
+          error.statusCode = 403;
+          return next(error);
+        }
+      }
     }
     
     res.status(200).json({
@@ -241,6 +289,8 @@ router.get('/:shortCode', async (req, res, next) => {
  *     description: Update URL details by its short code
  *     tags:
  *       - URL Management
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: shortCode
@@ -274,39 +324,44 @@ router.get('/:shortCode', async (req, res, next) => {
  *     responses:
  *       200:
  *         description: URL updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the owner
  *       404:
  *         description: URL not found
  *       500:
  *         description: Server error
  */
-router.put('/:shortCode', async (req, res, next) => {
+router.put('/:shortCode', authenticate, isUrlOwner, async (req, res, next) => {
   try {
-    const { shortCode } = req.params;
+    // URL is already found and ownership verified by isUrlOwner middleware
+    const url = req.url;
     const { active, expiresAt, metadata } = req.body;
     
-    const url = await Url.findOne({ shortCode });
-    
-    if (!url) {
-      const error = new Error(`URL with short code ${shortCode} not found`);
-      error.statusCode = 404;
-      return next(error);
+    // Update fields if provided
+    if (active !== undefined) {
+      url.active = active;
     }
     
-    // Update fields
-    if (active !== undefined) url.active = active;
-    if (expiresAt) url.expiresAt = new Date(expiresAt);
-    if (metadata) url.metadata = { ...url.metadata, ...metadata };
+    if (expiresAt !== undefined) {
+      url.expiresAt = expiresAt ? new Date(expiresAt) : null;
+    }
     
+    if (metadata) {
+      url.metadata = { ...url.metadata, ...metadata };
+    }
+    
+    // Save changes
     const updatedUrl = await url.save();
-    logger.info(`URL ${shortCode} updated`, { shortCode, requestId: req.id });
     
-    // Update cache if URL is active, otherwise remove from cache
+    // Update cache if URL is active
     if (updatedUrl.active) {
-      await cacheService.cacheUrl(shortCode, updatedUrl.originalUrl);
-      logger.debug(`Updated URL in cache: ${shortCode}`);
+      await cacheService.cacheUrl(updatedUrl.shortCode, updatedUrl.originalUrl);
+      logger.debug(`Cache updated for URL: ${updatedUrl.shortCode}`);
     } else {
-      await cacheService.deleteUrl(shortCode);
-      logger.debug(`Removed inactive URL from cache: ${shortCode}`);
+      await cacheService.invalidateUrl(updatedUrl.shortCode);
+      logger.debug(`URL removed from cache: ${updatedUrl.shortCode}`);
     }
     
     res.status(200).json({
@@ -326,6 +381,8 @@ router.put('/:shortCode', async (req, res, next) => {
  *     description: Disable a URL by its short code
  *     tags:
  *       - URL Management
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: shortCode
@@ -336,103 +393,32 @@ router.put('/:shortCode', async (req, res, next) => {
  *     responses:
  *       200:
  *         description: URL disabled successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the owner
  *       404:
  *         description: URL not found
  *       500:
  *         description: Server error
  */
-router.post('/:shortCode/disable', async (req, res, next) => {
+router.post('/:shortCode/disable', authenticate, isUrlOwner, async (req, res, next) => {
   try {
-    const { shortCode } = req.params;
+    // URL is already found and ownership verified by isUrlOwner middleware
+    const url = req.url;
     
-    const url = await Url.findOne({ shortCode });
-    
-    if (!url) {
-      const error = new Error(`URL with short code ${shortCode} not found`);
-      error.statusCode = 404;
-      return next(error);
-    }
-    
+    // Disable URL
     url.active = false;
     await url.save();
     
-    // Remove from cache since it's inactive
-    await cacheService.deleteUrl(shortCode);
-    logger.info(`URL ${shortCode} disabled and removed from cache`, { 
-      shortCode, 
-      requestId: req.id 
-    });
+    // Remove from cache
+    await cacheService.invalidateUrl(url.shortCode);
+    logger.info(`URL disabled and removed from cache: ${url.shortCode}`);
     
     res.status(200).json({
       message: 'URL disabled successfully',
-      data: { shortCode, active: false }
+      data: url
     });
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * @swagger
- * /api/urls/{shortCode}/stats:
- *   get:
- *     summary: Get URL statistics
- *     description: Get click statistics for a URL
- *     tags:
- *       - URL Management
- *     parameters:
- *       - in: path
- *         name: shortCode
- *         required: true
- *         description: Short code of the URL
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: URL statistics
- *       404:
- *         description: URL not found
- *       500:
- *         description: Server error
- */
-router.get('/:shortCode/stats', async (req, res, next) => {
-  try {
-    const { shortCode } = req.params;
-    
-    const url = await Url.findOne({ shortCode })
-      .select('shortCode originalUrl clicks uniqueVisitors createdAt lastAccessedAt');
-      
-    if (!url) {
-      const error = new Error(`URL with short code ${shortCode} not found`);
-      error.statusCode = 404;
-      return next(error);
-    }
-    
-    // Check if URL is in cache
-    const isCached = !!(await cacheService.getUrl(shortCode));
-    
-    // Calculate time-to-live in cache if it exists
-    let cacheTtl = null;
-    if (isCached) {
-      const ttl = await cacheService.client.ttl(`url:${shortCode}`);
-      cacheTtl = ttl > 0 ? ttl : null;
-    }
-    
-    const stats = {
-      shortCode: url.shortCode,
-      originalUrl: url.originalUrl,
-      clicks: url.clicks,
-      uniqueVisitors: url.uniqueVisitors,
-      createdAt: url.createdAt,
-      lastAccessedAt: url.lastAccessedAt,
-      cache: {
-        exists: isCached,
-        ttl: cacheTtl
-      },
-      // Add more detailed stats as needed
-    };
-    
-    res.status(200).json({ data: stats });
   } catch (error) {
     next(error);
   }
@@ -442,10 +428,12 @@ router.get('/:shortCode/stats', async (req, res, next) => {
  * @swagger
  * /api/urls/{shortCode}/refresh-cache:
  *   post:
- *     summary: Refresh cache for URL
- *     description: Force refresh the cache for a specific URL
+ *     summary: Refresh URL in cache
+ *     description: Update the URL in the cache with the latest data from the database
  *     tags:
  *       - URL Management
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: shortCode
@@ -456,47 +444,93 @@ router.get('/:shortCode/stats', async (req, res, next) => {
  *     responses:
  *       200:
  *         description: Cache refreshed successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the owner
  *       404:
  *         description: URL not found
  *       500:
  *         description: Server error
  */
-router.post('/:shortCode/refresh-cache', async (req, res, next) => {
+router.post('/:shortCode/refresh-cache', authenticate, isUrlOwner, async (req, res, next) => {
   try {
-    const { shortCode } = req.params;
-    const requestId = req.id || uuidv4();
+    // URL is already found and ownership verified by isUrlOwner middleware
+    const url = req.url;
     
-    const url = await Url.findOne({ shortCode });
-    
-    if (!url) {
-      const error = new Error(`URL with short code ${shortCode} not found`);
-      error.statusCode = 404;
-      return next(error);
-    }
-    
-    if (!url.active) {
-      const error = new Error(`URL with short code ${shortCode} is inactive`);
-      error.statusCode = 400;
-      return next(error);
-    }
-    
-    // Delete from cache first if exists
-    await cacheService.deleteUrl(shortCode);
-    
-    // Add to cache
-    const success = await cacheService.cacheUrl(shortCode, url.originalUrl);
-    
-    if (success) {
-      logger.info(`Cache refreshed for URL ${shortCode}`, { shortCode, requestId });
+    // Only refresh cache if URL is active
+    if (url.active) {
+      await cacheService.cacheUrl(url.shortCode, url.originalUrl);
+      logger.info(`Cache refreshed for URL: ${url.shortCode}`);
+      
       res.status(200).json({
         message: 'Cache refreshed successfully',
-        data: { shortCode, cached: true }
+        data: {
+          shortCode: url.shortCode,
+          cached: true
+        }
       });
     } else {
-      const error = new Error(`Failed to refresh cache for URL ${shortCode}`);
-      error.statusCode = 500;
-      return next(error);
+      res.status(200).json({
+        message: 'URL is inactive, not cached',
+        data: {
+          shortCode: url.shortCode,
+          cached: false
+        }
+      });
     }
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /api/urls/{shortCode}/stats:
+ *   get:
+ *     summary: Get URL statistics
+ *     description: Get click statistics for a URL by its short code
+ *     tags:
+ *       - URL Management
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: shortCode
+ *         required: true
+ *         description: Short code of the URL
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: URL statistics
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the owner
+ *       404:
+ *         description: URL not found
+ *       500:
+ *         description: Server error
+ */
+router.get('/:shortCode/stats', authenticate, isUrlOwner, async (req, res, next) => {
+  try {
+    // URL is already found and ownership verified by isUrlOwner middleware
+    const url = req.url;
+    
+    // Get basic stats
+    const stats = {
+      shortCode: url.shortCode,
+      originalUrl: url.originalUrl,
+      createdAt: url.createdAt,
+      clicks: url.clicks,
+      uniqueVisitors: url.uniqueVisitors,
+      lastAccessedAt: url.lastAccessedAt
+    };
+    
+    res.status(200).json({
+      data: stats
+    });
   } catch (error) {
     next(error);
   }

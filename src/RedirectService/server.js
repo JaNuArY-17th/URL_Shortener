@@ -20,8 +20,11 @@ const healthRoutes = require('./routes/health');
 const urlManagementRoutes = require('./routes/url-management');
 // Loại bỏ import analyticsRoutes
 
-// Create Express app
+// Create Express application
 const app = express();
+
+// Configure trust proxy for deployment behind reverse proxy
+app.set('trust proxy', true);
 
 // Connect to MongoDB
 mongoose.connect(config.db.mongodb.uri)

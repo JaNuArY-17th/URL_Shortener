@@ -105,20 +105,30 @@ const Analytics = () => {
       setOverview(overviewData);
 
       // Fetch timeseries data
-      const timeseriesData = await analyticsAPI.getClicksTimeseries({
-        period: filters.period,
-        shortCode: selectedShortCode
-      });
-      setTimeseries(timeseriesData);
+      try {
+        const timeseriesData = await analyticsAPI.getClicksTimeseries({
+          period: filters.period,
+          shortCode: selectedShortCode
+        });
+        setTimeseries(timeseriesData);
+        console.log("Timeseries data:", timeseriesData);
+      } catch (error) {
+        console.error("Failed to fetch timeseries data", error);
+      }
 
       // If a shortCode is selected, fetch detailed analytics for that URL
       if (selectedShortCode) {
-        const urlAnalyticsData = await analyticsAPI.getUrlAnalytics(selectedShortCode, filters.period);
-        setUrlAnalytics(urlAnalyticsData);
+        try {
+          const urlAnalyticsData = await analyticsAPI.getUrlAnalytics(selectedShortCode, filters.period);
+          setUrlAnalytics(urlAnalyticsData);
+          console.log("URL analytics data:", urlAnalyticsData);
 
-        // Auto-switch to URL tab if a specific URL was requested
-        if (shortCodeParam && activeTab === "overview") {
-          setActiveTab("url");
+          // Auto-switch to URL tab if a specific URL was requested
+          if (shortCodeParam && activeTab === "overview") {
+            setActiveTab("url");
+          }
+        } catch (error) {
+          console.error("Failed to fetch URL analytics", error);
         }
       }
     } catch (error) {

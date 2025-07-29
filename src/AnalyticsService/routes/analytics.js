@@ -5,6 +5,7 @@ const UrlStat = require('../models/UrlStat');
 const logger = require('../services/logger');
 const config = require('../config/config');
 const rateLimit = require('express-rate-limit');
+const { authenticate, authenticateOptional } = require('../middleware/authenticate');
 
 // Rate limiter for analytics endpoints
 const analyticsLimiter = rateLimit({
@@ -23,7 +24,7 @@ const analyticsLimiter = rateLimit({
  * /api/analytics/overview:
  *   get:
  *     summary: Get analytics overview
- *     description: Get overview analytics across all URLs
+ *     description: Get overview analytics for the authenticated user's URLs
  *     tags:
  *       - Analytics
  *     parameters:
@@ -37,12 +38,14 @@ const analyticsLimiter = rateLimit({
  *     responses:
  *       200:
  *         description: Analytics overview
+ *       401:
+ *         description: Unauthorized
  *       429:
  *         description: Too many requests
  *       500:
  *         description: Server error
  */
-router.get('/overview', analyticsLimiter, async (req, res, next) => {
+router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res, next) => {
   try {
     const period = req.query.period || 'week';
     let startDate;
@@ -74,65 +77,109 @@ router.get('/overview', analyticsLimiter, async (req, res, next) => {
         startDate = firstEvent ? new Date(firstEvent.timestamp) : new Date(0);
     }
     
+    // Base query
+    const query = { timestamp: { $gte: startDate } };
+    
+    // If user is authenticated, filter by userId
+    if (req.user?.id) {
+      // First, get all URLs belonging to this user
+      const userUrlStats = await UrlStat.find({ userId: req.user.id }).select('shortCode');
+      const userShortCodes = userUrlStats.map(stat => stat.shortCode);
+      
+      // Add filter for user's URLs only
+      if (userShortCodes.length > 0) {
+        query.shortCode = { $in: userShortCodes };
+      } else {
+        // If user has no URLs, return empty results
+        return res.json({
+          totalClicks: 0,
+          uniqueVisitors: 0,
+          clicksByCountry: [],
+          clicksByDevice: [],
+          clicksByReferrer: [],
+          clicksOverTime: []
+        });
+      }
+    }
+    
     // Get total clicks
-    const totalClicks = await ClickEvent.countDocuments({
-      timestamp: { $gte: startDate }
-    });
+    const totalClicks = await ClickEvent.countDocuments(query);
     
     // Get unique visitors
-    const uniqueVisitors = await ClickEvent.distinct('visitorHash', {
-      timestamp: { $gte: startDate }
-    });
+    const uniqueVisitors = await ClickEvent.distinct('visitorHash', query);
     
-    // Get top URLs
-    const topUrls = await UrlStat.find()
+    // Get top URLs (filtered by user if authenticated)
+    let topUrlsQuery = {};
+    if (req.user?.id) {
+      topUrlsQuery.userId = req.user.id;
+    }
+    
+    const topUrls = await UrlStat.find(topUrlsQuery)
       .sort({ totalClicks: -1 })
       .limit(10)
-      .select('shortCode originalUrl totalClicks uniqueVisitors');
+      .select('shortCode originalUrl totalClicks uniqueVisitors userId');
       
     // Get clicks by country
     const clicksByCountry = await ClickEvent.aggregate([
-      { $match: { timestamp: { $gte: startDate } } },
+      { $match: query },
       { $group: { _id: '$countryCode', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 10 }
     ]);
     
-    // Get clicks by device type
+    // Get clicks by device
     const clicksByDevice = await ClickEvent.aggregate([
-      { $match: { timestamp: { $gte: startDate } } },
+      { $match: query },
       { $group: { _id: '$deviceType', count: { $sum: 1 } } },
-      { $sort: { count: -1 } }
+      { $sort: { count: -1 } },
+      { $limit: 10 }
     ]);
     
-    // Get clicks over time
-    const clicksOverTime = await ClickEvent.aggregate([
-      { $match: { timestamp: { $gte: startDate } } },
-      {
-        $group: {
-          _id: {
-            year: { $year: '$timestamp' },
-            month: { $month: '$timestamp' },
-            day: { $dayOfMonth: '$timestamp' }
-          },
-          count: { $sum: 1 }
+    // Get clicks by referrer
+    const clicksByReferer = await ClickEvent.aggregate([
+      { $match: query },
+      { 
+        $addFields: {
+          // Extract domain from referrer
+          refererDomain: {
+            $cond: {
+              if: { $eq: ['$referer', 'direct'] },
+              then: 'direct',
+              else: {
+                $let: {
+                  vars: {
+                    // Extract hostname from URL
+                    parts: { $split: ['$referer', '/'] }
+                  },
+                  in: {
+                    $cond: {
+                      if: { $gt: [{ $size: '$$parts' }, 2] },
+                      then: { $arrayElemAt: ['$$parts', 2] },
+                      else: '$referer'
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
-      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
+      { $group: { _id: '$refererDomain', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 10 }
     ]);
     
-    res.json({
+    // Format the data
+    const formattedData = {
       period,
-      summary: {
-        totalClicks,
-        uniqueVisitors: uniqueVisitors.length,
-        topUrls: topUrls.map(url => ({
-          shortCode: url.shortCode,
-          originalUrl: url.originalUrl,
-          clicks: url.totalClicks,
-          uniqueVisitors: url.uniqueVisitors
-        }))
-      },
+      totalClicks,
+      uniqueVisitors: uniqueVisitors.length,
+      topUrls: topUrls.map(url => ({
+        shortCode: url.shortCode,
+        originalUrl: url.originalUrl,
+        clicks: url.totalClicks,
+        uniqueVisitors: url.uniqueVisitors
+      })),
       clicksByCountry: clicksByCountry.map(item => ({
         country: item._id || 'unknown',
         count: item.count
@@ -141,9 +188,140 @@ router.get('/overview', analyticsLimiter, async (req, res, next) => {
         device: item._id || 'unknown',
         count: item.count
       })),
-      clicksOverTime: clicksOverTime.map(item => ({
-        date: `${item._id.year}-${String(item._id.month).padStart(2, '0')}-${String(item._id.day).padStart(2, '0')}`,
-        clicks: item.count
+      clicksByReferer: clicksByReferer.map(item => ({
+        referer: item._id || 'unknown',
+        count: item.count
+      }))
+    };
+    
+    res.json(formattedData);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /api/analytics/summary:
+ *   get:
+ *     summary: Get analytics summary
+ *     description: Get a quick summary of analytics metrics for the authenticated user's URLs
+ *     tags:
+ *       - Analytics
+ *     responses:
+ *       200:
+ *         description: Analytics summary
+ *       401:
+ *         description: Unauthorized
+ *       429:
+ *         description: Too many requests
+ *       500:
+ *         description: Server error
+ */
+router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, next) => {
+  try {
+    // Base query for UrlStat
+    let urlStatQuery = {};
+    
+    // If user is authenticated, filter by userId
+    if (req.user?.id) {
+      urlStatQuery.userId = req.user.id;
+    }
+    
+    // Get active URLs count
+    const activeUrls = await UrlStat.countDocuments({ 
+      ...urlStatQuery,
+      active: true 
+    });
+    
+    // Get total clicks and today's clicks
+    let totalClicks = 0;
+    let clicksToday = 0;
+    let uniqueVisitors = 0;
+    
+    // Get aggregate stats from URL stats
+    const urlStats = await UrlStat.find(urlStatQuery);
+    
+    if (urlStats.length > 0) {
+      // Sum up clicks from all matching URLs
+      totalClicks = urlStats.reduce((sum, stat) => sum + (stat.totalClicks || 0), 0);
+      uniqueVisitors = urlStats.reduce((sum, stat) => sum + (stat.uniqueVisitors || 0), 0);
+      
+      // For today's clicks, we need to query the click events
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      // Get all shortCodes for the user's URLs
+      const shortCodes = urlStats.map(stat => stat.shortCode);
+      
+      // Query click events for today
+      if (shortCodes.length > 0) {
+        clicksToday = await ClickEvent.countDocuments({
+          shortCode: { $in: shortCodes },
+          timestamp: { $gte: startOfDay }
+        });
+      }
+    }
+    
+    // Get top referrers 
+    const topReferrers = await ClickEvent.aggregate([
+      { 
+        $match: req.user?.id ? {
+          shortCode: { $in: urlStats.map(stat => stat.shortCode) }
+        } : {} 
+      },
+      {
+        $addFields: {
+          refererDomain: {
+            $cond: {
+              if: { $eq: ['$referer', 'direct'] },
+              then: 'direct',
+              else: {
+                $let: {
+                  vars: { parts: { $split: ['$referer', '/'] } },
+                  in: {
+                    $cond: {
+                      if: { $gt: [{ $size: '$$parts' }, 2] },
+                      then: { $arrayElemAt: ['$$parts', 2] },
+                      else: '$referer'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      { $group: { _id: '$refererDomain', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+    
+    // Get top locations
+    const topLocations = await ClickEvent.aggregate([
+      { 
+        $match: req.user?.id ? {
+          shortCode: { $in: urlStats.map(stat => stat.shortCode) }
+        } : {} 
+      },
+      { $group: { _id: '$countryCode', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+    
+    // Format response
+    res.json({
+      totalClicks,
+      clicksToday,
+      activeUrls,
+      uniqueVisitors,
+      topReferrers: topReferrers.map(item => ({
+        source: item._id || 'unknown',
+        count: item.count
+      })),
+      topLocations: topLocations.map(item => ({
+        location: item._id || 'unknown',
+        count: item.count
       }))
     });
   } catch (error) {
@@ -155,7 +333,7 @@ router.get('/overview', analyticsLimiter, async (req, res, next) => {
  * @swagger
  * /api/analytics/urls/{shortCode}:
  *   get:
- *     summary: Get detailed URL analytics
+ *     summary: Get detailed analytics for a URL
  *     description: Get detailed analytics for a specific URL
  *     tags:
  *       - Analytics
@@ -163,9 +341,9 @@ router.get('/overview', analyticsLimiter, async (req, res, next) => {
  *       - in: path
  *         name: shortCode
  *         required: true
- *         description: Short code of the URL
  *         schema:
  *           type: string
+ *         description: Short code of the URL
  *       - in: query
  *         name: period
  *         schema:
@@ -176,6 +354,10 @@ router.get('/overview', analyticsLimiter, async (req, res, next) => {
  *     responses:
  *       200:
  *         description: URL analytics
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the owner of this URL
  *       404:
  *         description: URL not found
  *       429:
@@ -183,7 +365,7 @@ router.get('/overview', analyticsLimiter, async (req, res, next) => {
  *       500:
  *         description: Server error
  */
-router.get('/urls/:shortCode', analyticsLimiter, async (req, res, next) => {
+router.get('/urls/:shortCode', analyticsLimiter, authenticateOptional, async (req, res, next) => {
   try {
     const { shortCode } = req.params;
     const period = req.query.period || 'month';
@@ -191,10 +373,18 @@ router.get('/urls/:shortCode', analyticsLimiter, async (req, res, next) => {
     // Find URL stats
     const urlStat = await UrlStat.findOne({ shortCode });
     
+    // Handle not found
     if (!urlStat) {
       const error = new Error(`URL with short code ${shortCode} not found`);
       error.statusCode = 404;
-      return next(error);
+      throw error;
+    }
+    
+    // If user is authenticated, check ownership
+    if (req.user?.id && urlStat.userId && urlStat.userId.toString() !== req.user.id.toString()) {
+      const error = new Error('You do not have permission to view analytics for this URL');
+      error.statusCode = 403;
+      throw error;
     }
     
     // Get start date based on period
@@ -299,27 +489,41 @@ router.get('/urls/:shortCode', analyticsLimiter, async (req, res, next) => {
  *           type: string
  *           enum: [hour, day, week, month]
  *           default: day
- *         description: Time period granularity
+ *         description: Time resolution for the data
  *       - in: query
  *         name: range
  *         schema:
  *           type: string
  *           enum: [day, week, month, year]
  *           default: week
- *         description: Time range to analyze
+ *         description: Date range for the data
  *     responses:
  *       200:
  *         description: Time series data
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the owner of this URL
  *       429:
  *         description: Too many requests
  *       500:
  *         description: Server error
  */
-router.get('/clicks/timeseries', analyticsLimiter, async (req, res, next) => {
+router.get('/clicks/timeseries', analyticsLimiter, authenticateOptional, async (req, res, next) => {
   try {
     const { shortCode } = req.query;
     const period = req.query.period || 'day';
     const range = req.query.range || 'week';
+    
+    // If shortCode is provided and user is authenticated, verify ownership
+    if (shortCode && req.user?.id) {
+      const url = await UrlStat.findOne({ shortCode });
+      if (url && url.userId && url.userId.toString() !== req.user.id.toString()) {
+        const error = new Error('You do not have permission to view analytics for this URL');
+        error.statusCode = 403;
+        throw error;
+      }
+    }
     
     // Set date range
     const now = new Date();
@@ -345,8 +549,27 @@ router.get('/clicks/timeseries', analyticsLimiter, async (req, res, next) => {
       timestamp: { $gte: startDate }
     };
     
+    // If a specific shortCode is requested
     if (shortCode) {
       matchStage.shortCode = shortCode;
+    } 
+    // If user is authenticated and no specific shortCode, filter by user's URLs
+    else if (req.user?.id) {
+      // Get user's URLs
+      const userUrls = await UrlStat.find({ userId: req.user.id }).select('shortCode');
+      const userShortCodes = userUrls.map(url => url.shortCode);
+      
+      if (userShortCodes.length > 0) {
+        matchStage.shortCode = { $in: userShortCodes };
+      } else {
+        // If user has no URLs, return empty timeseries
+        return res.json({
+          shortCode,
+          period,
+          range,
+          timeSeries: []
+        });
+      }
     }
     
     // Build group by time period
@@ -361,7 +584,8 @@ router.get('/clicks/timeseries', analyticsLimiter, async (req, res, next) => {
               day: { $dayOfMonth: '$timestamp' },
               hour: { $hour: '$timestamp' }
             },
-            clicks: { $sum: 1 }
+            clicks: { $sum: 1 },
+            uniqueVisitors: { $addToSet: '$visitorHash' }
           }
         };
         break;
@@ -373,7 +597,8 @@ router.get('/clicks/timeseries', analyticsLimiter, async (req, res, next) => {
               month: { $month: '$timestamp' },
               day: { $dayOfMonth: '$timestamp' }
             },
-            clicks: { $sum: 1 }
+            clicks: { $sum: 1 },
+            uniqueVisitors: { $addToSet: '$visitorHash' }
           }
         };
         break;
@@ -384,7 +609,8 @@ router.get('/clicks/timeseries', analyticsLimiter, async (req, res, next) => {
               year: { $year: '$timestamp' },
               week: { $week: '$timestamp' }
             },
-            clicks: { $sum: 1 }
+            clicks: { $sum: 1 },
+            uniqueVisitors: { $addToSet: '$visitorHash' }
           }
         };
         break;
@@ -396,7 +622,8 @@ router.get('/clicks/timeseries', analyticsLimiter, async (req, res, next) => {
               year: { $year: '$timestamp' },
               month: { $month: '$timestamp' }
             },
-            clicks: { $sum: 1 }
+            clicks: { $sum: 1 },
+            uniqueVisitors: { $addToSet: '$visitorHash' }
           }
         };
     }
@@ -405,55 +632,29 @@ router.get('/clicks/timeseries', analyticsLimiter, async (req, res, next) => {
     const timeSeries = await ClickEvent.aggregate([
       { $match: matchStage },
       groupStage,
-      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1, '_id.hour': 1 } }
+      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1, '_id.hour': 1 } },
+      { 
+        $project: {
+          _id: 0,
+          timestamp: {
+            $dateFromParts: {
+              year: '$_id.year',
+              month: '$_id.month' || 1,
+              day: '$_id.day' || 1,
+              hour: '$_id.hour' || 0
+            }
+          },
+          clicks: 1,
+          uniqueVisitors: { $size: '$uniqueVisitors' }
+        }
+      }
     ]);
     
-    // Format time series data
-    const formattedTimeSeries = timeSeries.map(item => {
-      let timestamp;
-      
-      switch (period) {
-        case 'hour':
-          timestamp = new Date(
-            item._id.year,
-            item._id.month - 1,
-            item._id.day,
-            item._id.hour
-          ).toISOString();
-          break;
-        case 'day':
-          timestamp = new Date(
-            item._id.year,
-            item._id.month - 1,
-            item._id.day
-          ).toISOString();
-          break;
-        case 'week':
-          // Get first day of the week
-          const date = new Date(item._id.year, 0, 1);
-          date.setDate(date.getDate() + (item._id.week - 1) * 7);
-          timestamp = date.toISOString();
-          break;
-        case 'month':
-          timestamp = new Date(
-            item._id.year,
-            item._id.month - 1,
-            1
-          ).toISOString();
-          break;
-      }
-      
-      return {
-        timestamp,
-        clicks: item.clicks
-      };
-    });
-    
     res.json({
-      shortCode: shortCode || 'all',
+      shortCode,
       period,
       range,
-      timeSeries: formattedTimeSeries
+      timeSeries
     });
   } catch (error) {
     next(error);
@@ -465,7 +666,7 @@ router.get('/clicks/timeseries', analyticsLimiter, async (req, res, next) => {
  * /api/analytics/export:
  *   get:
  *     summary: Export analytics data
- *     description: Export analytics data in CSV or JSON format
+ *     description: Export analytics data in CSV, JSON, or Excel format
  *     tags:
  *       - Analytics
  *     parameters:
@@ -475,47 +676,57 @@ router.get('/clicks/timeseries', analyticsLimiter, async (req, res, next) => {
  *           type: string
  *         description: Optional short code to filter for a specific URL
  *       - in: query
- *         name: start
+ *         name: startDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Start date for export (ISO format)
+ *           format: date
+ *         description: Start date for the export (YYYY-MM-DD)
  *       - in: query
- *         name: end
+ *         name: endDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: End date for export (ISO format)
+ *           format: date
+ *         description: End date for the export (YYYY-MM-DD)
  *       - in: query
  *         name: format
  *         schema:
  *           type: string
- *           enum: [csv, json]
+ *           enum: [csv, json, xlsx]
  *           default: csv
  *         description: Export format
  *     responses:
  *       200:
- *         description: Exported data
- *         content:
- *           text/csv:
- *             schema:
- *               type: string
- *           application/json:
- *             schema:
- *               type: object
+ *         description: Analytics data in requested format
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the owner of this URL
  *       429:
  *         description: Too many requests
  *       500:
  *         description: Server error
  */
-router.get('/export', analyticsLimiter, async (req, res, next) => {
+router.get('/export', analyticsLimiter, authenticateOptional, async (req, res, next) => {
   try {
-    const { shortCode, format = 'csv' } = req.query;
+    const { shortCode } = req.query;
+    const format = req.query.format || 'csv';
     
-    // Parse dates, defaulting to last 30 days if not provided
-    const now = new Date();
-    const startDate = req.query.start ? new Date(req.query.start) : new Date(now - 30 * 24 * 60 * 60 * 1000);
-    const endDate = req.query.end ? new Date(req.query.end) : now;
+    // Parse dates
+    let startDate = req.query.startDate ? new Date(req.query.startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    let endDate = req.query.endDate ? new Date(req.query.endDate) : new Date();
+    
+    // Set end date to end of day
+    endDate.setHours(23, 59, 59, 999);
+    
+    // If shortCode is provided and user is authenticated, verify ownership
+    if (shortCode && req.user?.id) {
+      const url = await UrlStat.findOne({ shortCode });
+      if (url && url.userId && url.userId.toString() !== req.user.id.toString()) {
+        const error = new Error('You do not have permission to export analytics for this URL');
+        error.statusCode = 403;
+        throw error;
+      }
+    }
     
     // Build query
     const query = {
@@ -525,116 +736,71 @@ router.get('/export', analyticsLimiter, async (req, res, next) => {
       }
     };
     
+    // If a specific shortCode is requested
     if (shortCode) {
       query.shortCode = shortCode;
+    } 
+    // If user is authenticated and no specific shortCode, filter by user's URLs
+    else if (req.user?.id) {
+      // Get user's URLs
+      const userUrls = await UrlStat.find({ userId: req.user.id }).select('shortCode');
+      const userShortCodes = userUrls.map(url => url.shortCode);
+      
+      if (userShortCodes.length > 0) {
+        query.shortCode = { $in: userShortCodes };
+      } else {
+        // If user has no URLs, return empty data
+        return res.status(404).json({
+          status: 'error',
+          message: 'No URLs found for this user'
+        });
+      }
     }
     
     // Get click events
-    const clicks = await ClickEvent.find(query)
-      .select('shortCode originalUrl timestamp countryCode deviceType referer')
+    const clickEvents = await ClickEvent.find(query)
       .sort({ timestamp: -1 })
-      .limit(10000); // Limit export size
+      .select('shortCode timestamp countryCode deviceType referer visitorHash');
+    
+    // Format data for export
+    const data = clickEvents.map(click => ({
+      shortCode: click.shortCode,
+      timestamp: click.timestamp,
+      country: click.countryCode,
+      device: click.deviceType,
+      referer: click.referer,
+      visitorHash: click.visitorHash.slice(-8) // Only include last 8 chars for privacy
+    }));
+    
+    // Handle different export formats
+    switch (format) {
+      case 'json':
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename=analytics-export-${new Date().toISOString().slice(0, 10)}.json`);
+        return res.json(data);
       
-    if (format === 'json') {
-      return res.json({
-        data: clicks,
-        meta: {
-          total: clicks.length,
-          startDate,
-          endDate,
-          shortCode: shortCode || 'all'
-        }
-      });
-    } else {
-      // Generate CSV
-      let csv = 'shortCode,originalUrl,timestamp,countryCode,deviceType,referer\n';
+      case 'xlsx':
+        // Note: In a real implementation, you would use a library like exceljs
+        // For this example, we'll return JSON with a note
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename=analytics-export-${new Date().toISOString().slice(0, 10)}.json`);
+        return res.json({
+          format: 'xlsx requested but not implemented in this example',
+          data
+        });
       
-      clicks.forEach(click => {
-        csv += `${click.shortCode},${click.originalUrl.replace(/,/g, '%2C')},${click.timestamp.toISOString()},${click.countryCode || ''},${click.deviceType || ''},${(click.referer || '').replace(/,/g, '%2C')}\n`;
-      });
-      
-      res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename=url-analytics-${new Date().toISOString().slice(0, 10)}.csv`);
-      res.send(csv);
+      case 'csv':
+      default:
+        // Convert to CSV format
+        const csvHeader = 'Short Code,Timestamp,Country,Device,Referrer,Visitor ID\n';
+        const csvData = data.map(row => 
+          `${row.shortCode},${row.timestamp.toISOString()},${row.country},${row.device},${row.referer},${row.visitorHash}`
+        ).join('\n');
+        
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=analytics-export-${new Date().toISOString().slice(0, 10)}.csv`);
+        return res.send(csvHeader + csvData);
     }
-  } catch (error) {
-    next(error);
-  }
-});
-
-/**
- * @swagger
- * /api/analytics/summary:
- *   get:
- *     summary: Get quick summary
- *     description: Get a quick summary of analytics for dashboard
- *     tags:
- *       - Analytics
- *     responses:
- *       200:
- *         description: Quick analytics summary
- *       429:
- *         description: Too many requests
- *       500:
- *         description: Server error
- */
-router.get('/summary', analyticsLimiter, async (req, res, next) => {
-  try {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const last7days = new Date(today);
-    last7days.setDate(last7days.getDate() - 7);
-    const last30days = new Date(today);
-    last30days.setDate(last30days.getDate() - 30);
-    
-    // Total clicks
-    const totalClicks = await ClickEvent.countDocuments();
-    
-    // Clicks today
-    const clicksToday = await ClickEvent.countDocuments({
-      timestamp: { $gte: today }
-    });
-    
-    // Clicks yesterday
-    const clicksYesterday = await ClickEvent.countDocuments({
-      timestamp: { $gte: yesterday, $lt: today }
-    });
-    
-    // Clicks last 7 days
-    const clicksLast7Days = await ClickEvent.countDocuments({
-      timestamp: { $gte: last7days }
-    });
-    
-    // Clicks last 30 days
-    const clicksLast30Days = await ClickEvent.countDocuments({
-      timestamp: { $gte: last30days }
-    });
-    
-    // Unique visitors today
-    const uniqueVisitorsToday = await ClickEvent.distinct('visitorHash', {
-      timestamp: { $gte: today }
-    });
-    
-    // Active URLs (URLs that have been clicked in the last 30 days)
-    const activeUrls = await ClickEvent.distinct('shortCode', {
-      timestamp: { $gte: last30days }
-    });
-    
-    res.json({
-      totalClicks,
-      clicksToday,
-      clicksYesterday,
-      clicksLast7Days,
-      clicksLast30Days,
-      uniqueVisitorsToday: uniqueVisitorsToday.length,
-      activeUrls: activeUrls.length,
-      clicksGrowthRate: {
-        daily: clicksYesterday > 0 ? ((clicksToday - clicksYesterday) / clicksYesterday * 100).toFixed(2) : 0
-      },
-      timestamp: new Date().toISOString()
-    });
   } catch (error) {
     next(error);
   }
