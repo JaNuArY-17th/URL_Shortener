@@ -20,6 +20,9 @@ const healthRoutes = require('./routes/health');
 // Create Express app
 const app = express();
 
+// Trust proxy for deployments behind reverse proxies (like on Render)
+app.set('trust proxy', true);
+
 // Create HTTP server
 const server = http.createServer(app);
 

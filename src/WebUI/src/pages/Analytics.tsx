@@ -9,20 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Loader2, 
-  BarChart4, 
-  LineChart, 
-  PieChart, 
-  Calendar, 
-  Download, 
-  ArrowLeft, 
+import {
+  Loader2,
+  BarChart4,
+  LineChart,
+  PieChart,
+  Calendar,
+  Download,
+  ArrowLeft,
   ExternalLink,
   Clock,
   MapPin,
   Globe,
   Eye,
-  Filter 
+  Filter
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -68,7 +68,7 @@ const Analytics = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
-  
+
   // Get shortCode from URL query parameter if present
   const urlParams = new URLSearchParams(location.search);
   const shortCodeParam = urlParams.get('url') || undefined;
@@ -79,7 +79,7 @@ const Analytics = () => {
   const [timeseries, setTimeseries] = useState<TimeseriesData | null>(null);
   const [urlAnalytics, setUrlAnalytics] = useState<UrlAnalytics | null>(null);
   const [overview, setOverview] = useState<any>(null);
-  
+
   // States for URL and filters
   const [selectedShortCode, setSelectedShortCode] = useState<string | undefined>(shortCodeParam);
   const [filters, setFilters] = useState<AnalyticsFilters>({
@@ -87,9 +87,9 @@ const Analytics = () => {
     startDate: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days ago
     endDate: new Date().toISOString().split('T')[0], // Today
   });
-  
+
   // State for available URLs to select
-  const [availableUrls, setAvailableUrls] = useState<{shortCode: string, originalUrl: string}[]>([]);
+  const [availableUrls, setAvailableUrls] = useState<{ shortCode: string, originalUrl: string }[]>([]);
   const [isLoadingUrls, setIsLoadingUrls] = useState(false);
 
   // Function to fetch all analytics data
@@ -99,39 +99,39 @@ const Analytics = () => {
       // Fetch summary
       const summaryData = await analyticsAPI.getSummary();
       setSummary(summaryData);
-      
+
       // Fetch overview data with period filter
       const overviewData = await analyticsAPI.getOverview(filters.period);
       setOverview(overviewData);
-      
+
       // Fetch timeseries data
       const timeseriesData = await analyticsAPI.getClicksTimeseries({
         period: filters.period,
         shortCode: selectedShortCode
       });
       setTimeseries(timeseriesData);
-      
+
       // If a shortCode is selected, fetch detailed analytics for that URL
       if (selectedShortCode) {
         const urlAnalyticsData = await analyticsAPI.getUrlAnalytics(selectedShortCode, filters.period);
         setUrlAnalytics(urlAnalyticsData);
-        
+
         // Auto-switch to URL tab if a specific URL was requested
         if (shortCodeParam && activeTab === "overview") {
           setActiveTab("url");
         }
       }
-      } catch (error) {
+    } catch (error) {
       console.error("Failed to fetch analytics data", error);
       toast({
         title: "Error",
         description: "Failed to load analytics data",
         variant: "destructive"
       });
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Function to fetch available URLs for the dropdown
   const fetchAvailableUrls = async () => {
@@ -162,12 +162,12 @@ const Analytics = () => {
 
   // Function to handle period filter change
   const handlePeriodChange = (period: string) => {
-    setFilters({...filters, period});
+    setFilters({ ...filters, period });
   };
 
   // Function to handle date range filter change
   const handleDateRangeChange = (startDate: string, endDate: string) => {
-    setFilters({...filters, startDate, endDate});
+    setFilters({ ...filters, startDate, endDate });
   };
 
   // Function to export analytics data
@@ -179,7 +179,7 @@ const Analytics = () => {
         endDate: filters.endDate,
         format
       });
-      
+
       // Create a download link
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -189,7 +189,7 @@ const Analytics = () => {
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
-      
+
       toast({
         title: "Success",
         description: `Analytics data exported as ${format.toUpperCase()}`,
@@ -218,19 +218,19 @@ const Analytics = () => {
   // Set up socket listeners for URL click updates
   useEffect(() => {
     const socket = getSocket();
-    
+
     // Listen for redirect events (URL clicks)
     socket.on('url.redirect', (data) => {
       if (data && data.shortCode) {
         // Update the overview stats
         setOverview(prev => {
           if (!prev) return prev;
-          
+
           const updatedSummary = {
             ...prev.summary,
             totalClicks: prev.summary.totalClicks + 1
           };
-          
+
           // Update top URLs if this URL is in the list
           const updatedTopUrls = prev.topUrls.map(url => {
             if (url.shortCode === data.shortCode) {
@@ -242,7 +242,7 @@ const Analytics = () => {
             }
             return url;
           });
-          
+
           return {
             ...prev,
             summary: updatedSummary,
@@ -288,7 +288,7 @@ const Analytics = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <h1 className="text-3xl font-bold">Analytics</h1>
-          
+
           <div className="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0 w-full md:w-auto">
             <div className="flex-1 md:flex-initial">
               <Select
@@ -306,7 +306,7 @@ const Analytics = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="flex-1 md:flex-initial">
               <Select
                 value={selectedShortCode}
@@ -326,10 +326,10 @@ const Analytics = () => {
                 </SelectContent>
               </Select>
             </div>
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
+
+            <Button
+              variant="outline"
+              size="sm"
               className="gap-1"
               onClick={() => handleExportAnalytics('csv')}
             >
@@ -346,7 +346,7 @@ const Analytics = () => {
             <TabsTrigger value="url" disabled={!selectedShortCode}>URL Details</TabsTrigger>
           </TabsList>
 
-        {isLoading ? (
+          {isLoading ? (
             <div className="flex justify-center items-center h-60">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
@@ -369,7 +369,7 @@ const Analytics = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="shadow-soft">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-center">
@@ -383,7 +383,7 @@ const Analytics = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="shadow-soft">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-center">
@@ -397,7 +397,7 @@ const Analytics = () => {
                       </div>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="shadow-soft">
                     <CardContent className="p-6">
                       <div className="flex justify-between items-center">
@@ -437,7 +437,7 @@ const Analytics = () => {
                       )}
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="shadow-soft">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -463,7 +463,7 @@ const Analytics = () => {
                 </div>
 
                 {/* Raw JSON preview for debugging */}
-                <Card className="shadow-soft">
+                {/* <Card className="shadow-soft">
                   <CardHeader>
                     <CardTitle>Raw Overview Data</CardTitle>
                     <CardDescription>For development purposes</CardDescription>
@@ -473,7 +473,7 @@ const Analytics = () => {
                       {JSON.stringify(overview, null, 2)}
                     </pre>
                   </CardContent>
-                </Card>
+                </Card> */}
               </TabsContent>
 
               {/* CLICKS TAB */}
@@ -512,8 +512,8 @@ const Analytics = () => {
                             </tbody>
                           </table>
                         </div>
-          </div>
-        ) : (
+                      </div>
+                    ) : (
                       <div className="h-40 flex items-center justify-center">
                         <p className="text-muted-foreground">No click data available for the selected period</p>
                       </div>
@@ -522,52 +522,52 @@ const Analytics = () => {
                 </Card>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card className="shadow-soft">
-            <CardHeader>
+                  <Card className="shadow-soft">
+                    <CardHeader>
                       <CardTitle>Export Options</CardTitle>
-            </CardHeader>
-            <CardContent>
+                    </CardHeader>
+                    <CardContent>
                       <div className="flex flex-col gap-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="text-sm text-muted-foreground block mb-1">Start Date</label>
-                            <Input 
-                              type="date" 
-                              value={filters.startDate} 
+                            <Input
+                              type="date"
+                              value={filters.startDate}
                               onChange={(e) => handleDateRangeChange(e.target.value, filters.endDate || '')}
                             />
                           </div>
                           <div>
                             <label className="text-sm text-muted-foreground block mb-1">End Date</label>
-                            <Input 
-                              type="date" 
-                              value={filters.endDate} 
+                            <Input
+                              type="date"
+                              value={filters.endDate}
                               onChange={(e) => handleDateRangeChange(filters.startDate || '', e.target.value)}
                             />
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                          <Button 
-                            variant="default" 
-                            size="sm" 
+                          <Button
+                            variant="default"
+                            size="sm"
                             className="gap-1"
                             onClick={() => handleExportAnalytics('csv')}
                           >
                             <Download className="h-4 w-4" />
                             CSV
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="gap-1"
                             onClick={() => handleExportAnalytics('json')}
                           >
                             <Download className="h-4 w-4" />
                             JSON
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="gap-1"
                             onClick={() => handleExportAnalytics('xlsx')}
                           >
@@ -579,7 +579,7 @@ const Analytics = () => {
                     </CardContent>
                   </Card>
 
-                  <Card className="shadow-soft">
+                  {/* <Card className="shadow-soft">
                     <CardHeader>
                       <CardTitle>Raw Timeseries Data</CardTitle>
                       <CardDescription>For development purposes</CardDescription>
@@ -587,9 +587,9 @@ const Analytics = () => {
                     <CardContent className="max-h-60 overflow-auto">
                       <pre className="text-xs">
                         {JSON.stringify(timeseries, null, 2)}
-              </pre>
-            </CardContent>
-          </Card>
+                      </pre>
+                    </CardContent>
+                  </Card> */}
                 </div>
               </TabsContent>
 
@@ -601,9 +601,9 @@ const Analytics = () => {
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between mb-2">
                           <Badge variant="default">/{urlAnalytics.shortCode}</Badge>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             className="gap-1 text-xs"
                             onClick={() => window.open(urlAnalytics.originalUrl, '_blank')}
                           >
@@ -655,7 +655,7 @@ const Analytics = () => {
                           )}
                         </CardContent>
                       </Card>
-                      
+
                       <Card className="shadow-soft">
                         <CardHeader>
                           <CardTitle className="text-base">Locations</CardTitle>
@@ -675,7 +675,7 @@ const Analytics = () => {
                           )}
                         </CardContent>
                       </Card>
-                      
+
                       <Card className="shadow-soft">
                         <CardHeader>
                           <CardTitle className="text-base">Browsers</CardTitle>
@@ -695,7 +695,7 @@ const Analytics = () => {
                           )}
                         </CardContent>
                       </Card>
-                      
+
                       <Card className="shadow-soft">
                         <CardHeader>
                           <CardTitle className="text-base">Devices</CardTitle>
@@ -761,8 +761,8 @@ const Analytics = () => {
                 ) : (
                   <div className="flex flex-col items-center justify-center h-60">
                     <p className="text-muted-foreground mb-4">Select a URL to view detailed analytics</p>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       onClick={() => setActiveTab("overview")}
                       className="gap-2"
                     >

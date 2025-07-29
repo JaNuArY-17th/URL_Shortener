@@ -20,3 +20,35 @@
 {"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-26 03:20:20"}
 {"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-26 03:20:20"}
 {"level":"info","message":"Attempting to reconnect to RabbitMQ in 12 seconds (attempt 3/20)...","service":"notification-service","timestamp":"2025-07-26 03:20:20"}
+{"level":"info","message":"Email service disabled by configuration","service":"notification-service","timestamp":"2025-07-29 16:42:30"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-29 16:42:30"}
+{"level":"info","message":"Initializing Socket.IO with path: /api/notifications/socket.io","service":"notification-service","timestamp":"2025-07-29 16:42:30"}
+{"level":"info","message":"Socket.IO CORS origins: [\"http://localhost:8080\",\"http://localhost:3000\",\"http://localhost:5000\",\"https://url-shortener-obve.onrender.com\"]","service":"notification-service","timestamp":"2025-07-29 16:42:30"}
+{"level":"info","message":"Socket.IO server initialized","service":"notification-service","timestamp":"2025-07-29 16:42:30"}
+{"level":"info","message":"API Documentation available at http://localhost:3004/api-docs","service":"notification-service","timestamp":"2025-07-29 16:42:30"}
+{"level":"info","message":"Notification Service running on port 3004","service":"notification-service","timestamp":"2025-07-29 16:42:30"}
+{"level":"info","message":"API Documentation available at http://localhost:3004/api-docs","service":"notification-service","timestamp":"2025-07-29 16:42:30"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-29 16:42:30"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 5 seconds (attempt 1/20)...","service":"notification-service","timestamp":"2025-07-29 16:42:30"}
+{"level":"info","message":"MongoDB connected","service":"notification-service","timestamp":"2025-07-29 16:42:31"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-29 16:42:36"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-29 16:42:36"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 8 seconds (attempt 2/20)...","service":"notification-service","timestamp":"2025-07-29 16:42:36"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-29 16:42:44"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-29 16:42:44"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 11 seconds (attempt 3/20)...","service":"notification-service","timestamp":"2025-07-29 16:42:44"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-29 16:42:55"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-29 16:42:55"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 17 seconds (attempt 4/20)...","service":"notification-service","timestamp":"2025-07-29 16:42:55"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-29 16:43:12"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-29 16:43:12"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 27 seconds (attempt 5/20)...","service":"notification-service","timestamp":"2025-07-29 16:43:12"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-29 16:43:39"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-29 16:43:39"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 33 seconds (attempt 6/20)...","service":"notification-service","timestamp":"2025-07-29 16:43:39"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-29 16:44:12"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-29 16:44:12"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 35 seconds (attempt 7/20)...","service":"notification-service","timestamp":"2025-07-29 16:44:12"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"notification-service","timestamp":"2025-07-29 16:44:47"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"notification-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-29 16:44:47"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 32 seconds (attempt 8/20)...","service":"notification-service","timestamp":"2025-07-29 16:44:47"}

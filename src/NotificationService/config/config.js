@@ -48,6 +48,22 @@ const config = {
       credentials: true
     }
   },
+  notifications: {
+    retention: {
+      days: parseInt(process.env.NOTIFICATION_RETENTION_DAYS) || 30
+    },
+    defaultPreferences: {
+      email: process.env.DEFAULT_EMAIL_NOTIFICATIONS !== 'false',
+      push: process.env.DEFAULT_PUSH_NOTIFICATIONS === 'true',
+      inApp: true
+    }
+  },
+  rateLimit: {
+    api: {
+      windowMs: parseInt(process.env.API_RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+      max: parseInt(process.env.API_RATE_LIMIT_MAX) || 100 // 100 requests per window
+    }
+  },
   email: {
     service: process.env.EMAIL_SERVICE || 'gmail',
     auth: {
