@@ -1,21 +1,71 @@
-import axios from 'axios';
+// Import axios and socket.io-client
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig } from 'axios';
+import { io, Socket } from 'socket.io-client';
 import { API_GATEWAY } from './api-references';
 
-// Create axios instance with base configuration
-const api = axios.create({
-  baseURL: API_GATEWAY.BASE_URL,
-  timeout: 10000,
+// Create an axios instance
+const api: AxiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'https://url-shortener-obve.onrender.com',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to add auth token
+// Socket.io instance for real-time updates
+let socket: Socket | null = null;
+
+// Function to initialize and get the socket
+export const getSocket = (): Socket => {
+  if (!socket) {
+    socket = io('https://url-shortener-obve.onrender.com', {
+      path: '/api/notifications/socket.io',
+      autoConnect: false,
+      withCredentials: true,
+    });
+  }
+  return socket;
+};
+
+// Function to connect socket with authentication
+export const connectSocket = (token: string): void => {
+  const socket = getSocket();
+  
+  // Set auth token
+  socket.auth = { token };
+  
+  // Connection event handlers for debugging
+  socket.on('connect', () => {
+    console.log('Socket connected successfully');
+  });
+  
+  socket.on('connect_error', (error) => {
+    console.error('Socket connection error:', error);
+  });
+  
+  // Connect if not already connected
+  if (!socket.connected) {
+    console.log('Attempting to connect socket with token:', token ? 'Token exists' : 'No token');
+    socket.connect();
+  }
+};
+
+// Function to disconnect socket
+export const disconnectSocket = (): void => {
+  if (socket && socket.connected) {
+    console.log('Disconnecting socket');
+    socket.disconnect();
+  }
+};
+
+// Request interceptor for adding auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers = {
+        ...config.headers,
+        Authorization: `Bearer ${token}`,
+      };
     }
     return config;
   },
@@ -63,6 +113,38 @@ export const authAPI = {
   
   getProfile: async () => {
     const response = await api.get('/api/users/me');
+    return response.data;
+  },
+  
+  updateProfile: async (data: {
+    name?: string;
+    email?: string;
+    avatarUrl?: string;
+  }) => {
+    const response = await api.put('/api/users/me', data);
+    
+    // Update local storage user data
+    if (response.data && response.data.user) {
+      const userJson = localStorage.getItem('user');
+      if (userJson) {
+        try {
+          const user = JSON.parse(userJson);
+          const updatedUser = { ...user, ...response.data.user };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        } catch (e) {
+          console.error('Error updating user in localStorage:', e);
+        }
+      }
+    }
+    
+    return response.data;
+  },
+  
+  changePassword: async (data: {
+    currentPassword: string;
+    newPassword: string;
+  }) => {
+    const response = await api.put('/api/users/password', data);
     return response.data;
   },
 };

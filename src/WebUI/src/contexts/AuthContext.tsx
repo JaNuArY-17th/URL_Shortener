@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { authAPI } from '@/services/api';
+import { authAPI, connectSocket, disconnectSocket } from '@/services/api';
 
 interface User {
   id: string;
@@ -28,13 +28,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check if user is logged in on app start
     const checkAuth = async () => {
       try {
-        await validateToken();
+        const isValid = await validateToken();
+        // Connect to socket if token is valid
+        if (isValid) {
+          const token = localStorage.getItem('token');
+          if (token) {
+            connectSocket(token);
+          }
+        }
       } finally {
         setIsLoading(false);
       }
     };
     
     checkAuth();
+    
+    // Disconnect socket on unmount
+    return () => {
+      disconnectSocket();
+    };
   }, []);
 
   const validateToken = async (): Promise<boolean> => {
@@ -74,6 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(response.user);
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
+        
+        // Connect to socket after login
+        connectSocket(response.token);
       } else {
         throw new Error('Invalid response from server');
       }
@@ -106,18 +121,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = async () => {
-    setIsLoading(true);
-    try {
-      await authAPI.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      setUser(null);
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      setIsLoading(false);
-    }
+  const logout = () => {
+    // Disconnect socket on logout
+    disconnectSocket();
+    
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   const value: AuthContextType = {

@@ -136,7 +136,17 @@ class MessageHandler {
       config.rabbitmq.routingKeys.userCreated
     );
     
-    logger.info('RabbitMQ exchanges and queues configured');
+    logger.info('RabbitMQ exchanges and queues configured successfully', {
+      urlEvents: config.rabbitmq.exchanges.urlEvents,
+      userEvents: config.rabbitmq.exchanges.userEvents,
+      urlQueue: config.rabbitmq.queues.urlNotifications,
+      userQueue: config.rabbitmq.queues.userNotifications,
+      bindings: [
+        config.rabbitmq.routingKeys.urlCreated,
+        config.rabbitmq.routingKeys.urlRedirect,
+        config.rabbitmq.routingKeys.userCreated
+      ]
+    });
   }
 
   /**
@@ -257,19 +267,33 @@ class MessageHandler {
     try {
       const { shortCode, userId } = data;
       
-      // Skip if no userId (anonymous URL)
+      // If no userId, this is an anonymous URL redirect - emit to all admins
       if (!userId) {
         logger.debug(`Skipping notification for anonymous URL redirect: ${shortCode}`);
+        // In a real implementation, you might notify admins or broadcast to a specific channel
         return;
       }
       
-      // Check if this redirect represents a milestone (100, 1000, etc.)
-      // This would require fetching current click count from analytics service
-      // For now, we're simulating it with random milestones
+      // Forward the click event to the WebSocket for real-time updates
+      const socketService = require('./socketService');
+      if (socketService.isConnected()) {
+        // Send to specific user
+        socketService.sendToUser(userId, 'url.redirect', {
+          shortCode,
+          timestamp: new Date().toISOString()
+        });
+        
+        logger.debug(`Sent real-time redirect notification for ${shortCode} to user ${userId}`);
+      }
       
-      // For demonstration, randomly create milestone notifications (about 1% of redirects)
+      // In a real implementation, you might also:
+      // 1. Store the click in a click events collection
+      // 2. Check for milestones (like in the existing code)
+      // 3. Generate notifications for important milestones
+      
+      // For demonstration, we'll keep the existing milestone functionality
       if (Math.random() < 0.01) {
-        // Generate a plausible milestone number
+        // Generate a plausible milestone number (only 1% of clicks for demo)
         const milestones = [100, 500, 1000, 5000, 10000, 50000, 100000];
         const milestoneIndex = Math.floor(Math.random() * milestones.length);
         const clicks = milestones[milestoneIndex];

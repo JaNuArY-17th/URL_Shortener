@@ -33,6 +33,9 @@ mongoose.connect(config.db.mongodb.uri)
 
 // Connect to RabbitMQ
 messageHandler.connect()
+  .then(() => {
+    logger.info('Connected to RabbitMQ');
+  })
   .catch(err => {
     logger.error('Failed to connect to RabbitMQ:', err);
     // Continue execution anyway, will retry connection

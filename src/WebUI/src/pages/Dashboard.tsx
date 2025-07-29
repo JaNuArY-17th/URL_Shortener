@@ -1,19 +1,20 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { urlAPI, analyticsAPI } from "@/services/api";
-import { 
-  Link2, 
-  Copy, 
-  ExternalLink, 
-  Eye, 
-  Calendar, 
-  TrendingUp, 
+import { urlAPI, analyticsAPI, getSocket } from "@/services/api";
+import { AuthenticatedHeader } from "@/components/AuthenticatedHeader";
+import {
+  Link2,
+  Copy,
+  ExternalLink,
+  Eye,
+  Calendar,
+  TrendingUp,
   Plus,
   BarChart3,
   Settings,
@@ -37,6 +38,7 @@ interface ShortenedUrl {
   uniqueVisitors?: number;
   active?: boolean;
   expanded?: boolean;
+  urlExpanded?: boolean; // Track if original URL is expanded
   details?: {
     metadata?: {
       tags?: string[];
@@ -69,6 +71,7 @@ export default function Dashboard() {
     activeUrls: 0
   });
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Fetch data when component mounts or user changes
   useEffect(() => {
@@ -78,17 +81,61 @@ export default function Dashboard() {
     }
   }, [user]);
 
+  // Set up socket listeners for URL click updates
+  useEffect(() => {
+    const socket = getSocket();
+
+    // Listen for redirect events (URL clicks)
+    socket.on('url.redirect', (data) => {
+      if (data && data.shortCode) {
+        // Update the click count for the matching URL
+        setShortenedUrls(prevUrls => {
+          return prevUrls.map(url => {
+            if (url.shortCode === data.shortCode) {
+              // Update click count and return updated URL
+              return {
+                ...url,
+                clicks: (url.clicks || 0) + 1,
+                // If details are loaded, update those too
+                details: url.details ? {
+                  ...url.details,
+                  lastAccessedAt: new Date().toISOString()
+                } : url.details
+              };
+            }
+            return url;
+          });
+        });
+
+        // Update analytics summary
+        setStats(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            totalClicks: (prev.totalClicks || 0) + 1,
+            clicksToday: (prev.clicksToday || 0) + 1
+          };
+        });
+      }
+    });
+
+    return () => {
+      // Clean up listeners on unmount
+      socket.off('url.redirect');
+    };
+  }, []);
+
   const fetchUrls = async () => {
     try {
       setIsLoadingUrls(true);
       // Pass user ID to get only the current user's URLs
       const response = await urlAPI.getUrls(1, 10, true, user?.id);
-      
+
       if (response?.data) {
         setShortenedUrls(response.data.map((url: any) => ({
           shortCode: url.shortCode,
           originalUrl: url.originalUrl,
-          shortUrl: `${window.location.origin}/${url.shortCode}`,
+          shortUrl: `https://url-shortener-obve.onrender.com/${url.shortCode}`,
           createdAt: url.createdAt,
           clicks: url.clicks || 0,
           uniqueVisitors: url.uniqueVisitors || 0,
@@ -113,7 +160,7 @@ export default function Dashboard() {
     try {
       setIsLoadingStats(true);
       const response = await analyticsAPI.getSummary();
-      
+
       if (response) {
         setStats({
           totalClicks: response.totalClicks || 0,
@@ -166,10 +213,10 @@ export default function Dashboard() {
         customAlias: customAlias || undefined,
         expiresAt: expiresAt || undefined
       });
-      
+
       // After successful creation, refresh the URLs list
       await fetchUrls();
-      
+
       // Update URL count in stats
       setStats(prev => ({
         ...prev,
@@ -222,22 +269,33 @@ export default function Dashboard() {
       year: 'numeric'
     });
   };
-  
+
+  // Function to toggle URL expansion
+  const toggleUrlExpand = (shortCode: string) => {
+    const updatedUrls = shortenedUrls.map(url => {
+      if (url.shortCode === shortCode) {
+        return { ...url, urlExpanded: !url.urlExpanded };
+      }
+      return url;
+    });
+    setShortenedUrls(updatedUrls);
+  };
+
   const toggleUrlDetails = async (shortCode: string) => {
     // Find the URL in the list
     const updatedUrls = [...shortenedUrls];
     const urlIndex = updatedUrls.findIndex(u => u.shortCode === shortCode);
-    
+
     if (urlIndex === -1) return;
-    
+
     // Toggle expanded state
     updatedUrls[urlIndex].expanded = !updatedUrls[urlIndex].expanded;
-    
+
     // If expanding and no details available, fetch them
     if (updatedUrls[urlIndex].expanded && !updatedUrls[urlIndex].details) {
       try {
         const response = await urlAPI.getUrl(shortCode);
-        
+
         if (response?.data) {
           updatedUrls[urlIndex].details = {
             metadata: response.data.metadata,
@@ -255,17 +313,17 @@ export default function Dashboard() {
         });
       }
     }
-    
+
     // Update state with expanded/collapsed URLs
     setShortenedUrls(updatedUrls);
   };
-  
+
   // Function to disable a URL
   const handleDisableUrl = async (shortCode: string) => {
     try {
       setIsLoading(true);
       await urlAPI.disableUrl(shortCode);
-      
+
       // Update the URL in the list
       const updatedUrls = shortenedUrls.map(url => {
         if (url.shortCode === shortCode) {
@@ -273,9 +331,9 @@ export default function Dashboard() {
         }
         return url;
       });
-      
+
       setShortenedUrls(updatedUrls);
-      
+
       toast({
         title: "Success",
         description: "URL has been disabled",
@@ -291,13 +349,13 @@ export default function Dashboard() {
       setIsLoading(false);
     }
   };
-  
+
   // Function to refresh URL cache
   const handleRefreshCache = async (shortCode: string) => {
     try {
       setIsLoading(true);
       await urlAPI.refreshCache(shortCode);
-      
+
       toast({
         title: "Success",
         description: "URL cache has been refreshed",
@@ -313,7 +371,7 @@ export default function Dashboard() {
       setIsLoading(false);
     }
   };
-  
+
   // Function to update URL
   const handleUpdateUrl = async (shortCode: string, data: {
     active?: boolean;
@@ -323,10 +381,10 @@ export default function Dashboard() {
     try {
       setIsLoading(true);
       await urlAPI.updateUrl(shortCode, data);
-      
+
       // Update the URL in the list and refetch to get fresh data
       await fetchUrls();
-      
+
       toast({
         title: "Success",
         description: "URL has been updated",
@@ -346,68 +404,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-gradient-primary rounded-lg">
-              <Link2 className="h-6 w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                QuickLink
-              </h1>
-              <p className="text-xs text-muted-foreground">Dashboard</p>
-            </div>
-          </div>
-
-          <nav className="hidden md:flex items-center gap-1">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="gap-2"
-              asChild
-            >
-              <Link to="/analytics">
-                <BarChart3 className="h-4 w-4" />
-                Analytics
-              </Link>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="gap-2"
-              asChild
-            >
-              <Link to="/settings">
-                <Settings className="h-4 w-4" />
-                Settings
-              </Link>
-            </Button>
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="gap-2"
-              asChild
-            >
-              <Link to="/settings">
-                <User className="h-4 w-4" />
-                {user?.name || 'Account'}
-              </Link>
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="gap-2"
-              onClick={() => logout()}
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </header>
+      <AuthenticatedHeader />
 
       <main className="container mx-auto px-4 py-8">
         {/* Stats Cards */}
@@ -493,12 +490,12 @@ export default function Dashboard() {
                 className="w-full"
                 onKeyPress={(e) => e.key === 'Enter' && !showCustomAlias && handleShorten()}
               />
-              
+
               {showCustomAlias && (
                 <>
                   <div className="flex gap-2 items-center">
                     <span className="text-sm text-muted-foreground whitespace-nowrap">Custom alias:</span>
-                    <Input 
+                    <Input
                       placeholder="your-custom-code (optional)"
                       value={customAlias}
                       onChange={(e) => setCustomAlias(e.target.value)}
@@ -518,18 +515,18 @@ export default function Dashboard() {
               )}
 
               <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   size="sm"
                   onClick={() => setShowCustomAlias(!showCustomAlias)}
                   className="sm:ml-auto"
                 >
                   {showCustomAlias ? "Hide advanced options" : "Advanced options"}
                 </Button>
-                
-                <Button 
-                  onClick={handleShorten} 
+
+                <Button
+                  onClick={handleShorten}
                   disabled={isLoading}
                   variant="gradient"
                   size="lg"
@@ -552,9 +549,9 @@ export default function Dashboard() {
                   {shortenedUrls.length} {shortenedUrls.length === 1 ? 'URL' : 'URLs'}
                 </Badge>
               )}
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 className="gap-2"
                 asChild
               >
@@ -581,39 +578,69 @@ export default function Dashboard() {
                     <div className="space-y-4">
                       {/* URLs */}
                       <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-4 w-full">
+                          <div className="flex-1 min-w-0 overflow-hidden">
                             <div className="text-sm text-muted-foreground">Original URL</div>
-                            <p className="text-sm truncate font-mono bg-muted px-2 py-1 rounded">
-                              {item.originalUrl}
-                            </p>
+                            <div className="flex items-center">
+                              <div
+                                className="cursor-pointer flex-1 min-w-0"
+                                style={{ maxWidth: "calc(100% - 48px)" }}
+                                onClick={() => toggleUrlExpand(item.shortCode)}
+                              >
+                                <div className="bg-muted rounded px-2 py-1 max-w-full" style={{ maxHeight: item.urlExpanded ? 'none' : '28px' }}>
+                                  {item.urlExpanded ? (
+                                    <p className="text-sm font-mono break-words">
+                                      {item.originalUrl}
+                                    </p>
+                                  ) : (
+                                    <div className="relative">
+                                      <p className="text-sm font-mono truncate">
+                                        {item.originalUrl.length > 150 ? item.originalUrl.substring(0, 150) : item.originalUrl}
+                                        <span className="text-muted-foreground">{item.originalUrl.length > 150 ? '...' : ''}</span>
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => window.open(item.originalUrl, '_blank')}
+                                className="ml-2 shrink-0 h-8 w-8 flex-none"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => window.open(item.originalUrl, '_blank')}
-                            className="shrink-0"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </Button>
                         </div>
 
                         <div className="flex items-center justify-between gap-4">
                           <div className="flex-1">
                             <div className="text-sm text-muted-foreground">Short URL</div>
                             <p className="text-lg font-mono text-primary font-semibold">
-                              {window.location.origin}/{item.shortCode}
+                              https://url-shortener-obve.onrender.com/{item.shortCode}
                             </p>
                           </div>
-                          <Button
-                            variant="success"
-                            size="sm"
-                            onClick={() => copyToClipboard(`${window.location.origin}/${item.shortCode}`)}
-                            className="shrink-0"
-                          >
-                            <Copy className="h-4 w-4 mr-1" />
-                            Copy
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(`https://url-shortener-obve.onrender.com/${item.shortCode}`, '_blank')}
+                              className="shrink-0"
+                            >
+                              <ExternalLink className="h-4 w-4 mr-1" />
+                              Open
+                            </Button>
+                            <Button
+                              variant="success"
+                              size="sm"
+                              onClick={() => copyToClipboard(`https://url-shortener-obve.onrender.com/${item.shortCode}`)}
+                              className="shrink-0"
+                            >
+                              <Copy className="h-4 w-4 mr-1" />
+                              Copy
+                            </Button>
+                          </div>
                         </div>
                       </div>
 
@@ -634,15 +661,15 @@ export default function Dashboard() {
                               Disabled
                             </Badge>
                           ) : (
-                            <Badge variant="success" className="text-xs py-0 h-5 gap-1">
+                            <Badge variant="default" className="text-xs py-0 h-5 gap-1">
                               <Check className="h-3 w-3" />
                               Active
                             </Badge>
                           )}
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="gap-2 text-xs"
                           onClick={() => toggleUrlDetails(item.shortCode)}
                         >
@@ -655,7 +682,7 @@ export default function Dashboard() {
                       {item.expanded && (
                         <div className="pt-3 mt-2 border-t border-dashed animate-fade-down">
                           <h4 className="text-sm font-medium mb-2">URL Details</h4>
-                          
+
                           {!item.details ? (
                             <div className="flex justify-center py-4">
                               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -666,22 +693,22 @@ export default function Dashboard() {
                                 <p className="text-muted-foreground">Created</p>
                                 <p className="font-medium">{formatDate(item.createdAt)}</p>
                               </div>
-                              
+
                               <div>
                                 <p className="text-muted-foreground">Last Updated</p>
                                 <p className="font-medium">{formatDate(item.details.updatedAt)}</p>
                               </div>
-                              
+
                               <div>
                                 <p className="text-muted-foreground">Expires</p>
                                 <p className="font-medium">{item.details.expiresAt ? formatDate(item.details.expiresAt) : 'Never'}</p>
                               </div>
-                              
+
                               <div>
                                 <p className="text-muted-foreground">Last Clicked</p>
                                 <p className="font-medium">{formatDate(item.details.lastAccessedAt)}</p>
                               </div>
-                              
+
                               <div className="col-span-full">
                                 <p className="text-muted-foreground">Tags</p>
                                 <div className="flex flex-wrap gap-2 mt-1">
@@ -694,12 +721,12 @@ export default function Dashboard() {
                                   )}
                                 </div>
                               </div>
-                              
-                                                            <div className="col-span-full mt-2">
+
+                              <div className="col-span-full mt-2">
                                 <div className="flex flex-wrap gap-2">
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
                                     className="gap-1 text-xs flex-1"
                                     asChild
                                   >
@@ -708,21 +735,21 @@ export default function Dashboard() {
                                       Analytics
                                     </Link>
                                   </Button>
-                                  
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
+
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
                                     className="gap-1 text-xs flex-1"
                                     onClick={() => handleRefreshCache(item.shortCode)}
                                   >
                                     <RefreshCw className="h-3 w-3" />
                                     Refresh Cache
                                   </Button>
-                                  
+
                                   {item.active !== false && (
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
                                       className="gap-1 text-xs flex-1 text-destructive hover:text-destructive"
                                       onClick={() => handleDisableUrl(item.shortCode)}
                                     >
@@ -732,7 +759,7 @@ export default function Dashboard() {
                                   )}
                                 </div>
                               </div>
-                              
+
                               {/* URL Update Form */}
                               <div className="col-span-full mt-4 pt-3 border-t">
                                 <h4 className="text-sm font-medium mb-3">Update URL Settings</h4>
@@ -741,19 +768,18 @@ export default function Dashboard() {
                                     <label className="text-xs text-muted-foreground">Expiration Date</label>
                                     <Input
                                       type="datetime-local"
-                                      size="sm"
-                                      className="h-8 text-xs mt-1"
+                                      className="h-8 text-xs mt-1 text-sm"
                                       defaultValue={item.details?.expiresAt ? new Date(item.details.expiresAt).toISOString().slice(0, 16) : ''}
                                       onChange={(e) => {
                                         // Just store temporarily, will submit on button click
-                                        item.details = { 
+                                        item.details = {
                                           ...item.details,
                                           expiresAt: e.target.value || null
                                         };
                                       }}
                                     />
                                   </div>
-                                  
+
                                   <div>
                                     <label className="text-xs text-muted-foreground flex items-center gap-1">
                                       <Tag className="h-3 w-3" />
@@ -761,8 +787,7 @@ export default function Dashboard() {
                                     </label>
                                     <Input
                                       type="text"
-                                      size="sm"
-                                      className="h-8 text-xs mt-1"
+                                      className="h-8 text-xs mt-1 text-sm"
                                       placeholder="e.g. important, marketing, temporary"
                                       defaultValue={item.details?.metadata?.tags?.join(', ') || ''}
                                       onChange={(e) => {
@@ -770,7 +795,7 @@ export default function Dashboard() {
                                           .split(',')
                                           .map(tag => tag.trim())
                                           .filter(tag => tag);
-                                        
+
                                         // Just store temporarily
                                         item.details = {
                                           ...item.details,
@@ -782,14 +807,14 @@ export default function Dashboard() {
                                       }}
                                     />
                                   </div>
-                                  
-                                  <Button 
-                                    variant="default" 
-                                    size="sm" 
+
+                                  <Button
+                                    variant="default"
+                                    size="sm"
                                     className="gap-1 text-xs w-full"
                                     onClick={() => {
                                       if (!item.details) return;
-                                      
+
                                       handleUpdateUrl(item.shortCode, {
                                         expiresAt: item.details.expiresAt,
                                         metadata: {

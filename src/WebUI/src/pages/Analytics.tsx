@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { analyticsAPI, urlAPI } from "@/services/api";
+import { getSocket } from "@/services/api";
+import { AuthenticatedHeader } from "@/components/AuthenticatedHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -119,17 +121,17 @@ const Analytics = () => {
           setActiveTab("url");
         }
       }
-    } catch (error) {
+      } catch (error) {
       console.error("Failed to fetch analytics data", error);
       toast({
         title: "Error",
         description: "Failed to load analytics data",
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   // Function to fetch available URLs for the dropdown
   const fetchAvailableUrls = async () => {
@@ -213,6 +215,61 @@ const Analytics = () => {
     fetchAnalyticsData();
   }, [filters.period, selectedShortCode]);
 
+  // Set up socket listeners for URL click updates
+  useEffect(() => {
+    const socket = getSocket();
+    
+    // Listen for redirect events (URL clicks)
+    socket.on('url.redirect', (data) => {
+      if (data && data.shortCode) {
+        // Update the overview stats
+        setOverview(prev => {
+          if (!prev) return prev;
+          
+          const updatedSummary = {
+            ...prev.summary,
+            totalClicks: prev.summary.totalClicks + 1
+          };
+          
+          // Update top URLs if this URL is in the list
+          const updatedTopUrls = prev.topUrls.map(url => {
+            if (url.shortCode === data.shortCode) {
+              return {
+                ...url,
+                clicks: url.clicks + 1,
+                lastAccessedAt: new Date().toISOString()
+              };
+            }
+            return url;
+          });
+          
+          return {
+            ...prev,
+            summary: updatedSummary,
+            topUrls: updatedTopUrls
+          };
+        });
+
+        // Update specific URL details if currently viewing that URL
+        if (selectedShortCode && selectedShortCode === data.shortCode) {
+          setUrlAnalytics(prev => {
+            if (!prev) return prev;
+            return {
+              ...prev,
+              clicks: (prev.clicks || 0) + 1,
+              lastAccessedAt: new Date().toISOString()
+            };
+          });
+        }
+      }
+    });
+
+    return () => {
+      // Clean up listeners on unmount
+      socket.off('url.redirect');
+    };
+  }, [selectedShortCode]);
+
   // Helper function to format date
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Never';
@@ -227,6 +284,7 @@ const Analytics = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <AuthenticatedHeader />
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
           <h1 className="text-3xl font-bold">Analytics</h1>
@@ -288,7 +346,7 @@ const Analytics = () => {
             <TabsTrigger value="url" disabled={!selectedShortCode}>URL Details</TabsTrigger>
           </TabsList>
 
-          {isLoading ? (
+        {isLoading ? (
             <div className="flex justify-center items-center h-60">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>
@@ -454,8 +512,8 @@ const Analytics = () => {
                             </tbody>
                           </table>
                         </div>
-                      </div>
-                    ) : (
+          </div>
+        ) : (
                       <div className="h-40 flex items-center justify-center">
                         <p className="text-muted-foreground">No click data available for the selected period</p>
                       </div>
@@ -464,11 +522,11 @@ const Analytics = () => {
                 </Card>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="shadow-soft">
-                    <CardHeader>
+          <Card className="shadow-soft">
+            <CardHeader>
                       <CardTitle>Export Options</CardTitle>
-                    </CardHeader>
-                    <CardContent>
+            </CardHeader>
+            <CardContent>
                       <div className="flex flex-col gap-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -529,9 +587,9 @@ const Analytics = () => {
                     <CardContent className="max-h-60 overflow-auto">
                       <pre className="text-xs">
                         {JSON.stringify(timeseries, null, 2)}
-                      </pre>
-                    </CardContent>
-                  </Card>
+              </pre>
+            </CardContent>
+          </Card>
                 </div>
               </TabsContent>
 

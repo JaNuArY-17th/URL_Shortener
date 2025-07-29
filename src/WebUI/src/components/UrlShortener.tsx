@@ -7,6 +7,7 @@ import { Link2, Copy, ExternalLink, Eye, Calendar, TrendingUp } from "lucide-rea
 import { useToast } from "@/hooks/use-toast";
 import { urlAPI } from "@/services/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { getSocket } from "@/services/api";
 
 interface ShortenedUrl {
   shortCode: string;
@@ -16,6 +17,7 @@ interface ShortenedUrl {
   clicks?: number;
   uniqueVisitors?: number;
   active?: boolean;
+  urlExpanded?: boolean; // Track if original URL is expanded
 }
 
 export function UrlShortener() {
@@ -35,6 +37,31 @@ export function UrlShortener() {
     }
   }, [isAuthenticated, user]);
 
+  // Set up socket listeners for URL click updates
+  useEffect(() => {
+    const socket = getSocket();
+    
+    // Listen for redirect events (URL clicks)
+    socket.on('url.redirect', (data) => {
+      if (data && data.shortCode) {
+        // Update the click count for the matching URL
+        setShortenedUrls(prevUrls => {
+          return prevUrls.map(url => {
+            if (url.shortCode === data.shortCode) {
+              return { ...url, clicks: (url.clicks || 0) + 1 };
+            }
+            return url;
+          });
+        });
+      }
+    });
+
+    return () => {
+      // Clean up listeners on unmount
+      socket.off('url.redirect');
+    };
+  }, []);
+
   const fetchUserUrls = async () => {
     if (!isAuthenticated || !user?.id) return;
 
@@ -47,7 +74,7 @@ export function UrlShortener() {
         setShortenedUrls(response.data.map((url: any) => ({
           shortCode: url.shortCode,
           originalUrl: url.originalUrl,
-          shortUrl: `${window.location.origin}/${url.shortCode}`, // Use current domain for display
+          shortUrl: `https://url-shortener-obve.onrender.com/${url.shortCode}`, // Use API gateway domain
           createdAt: url.createdAt,
           clicks: url.clicks || 0,
           uniqueVisitors: url.uniqueVisitors || 0,
@@ -108,7 +135,7 @@ export function UrlShortener() {
       const newUrl: ShortenedUrl = {
         shortCode: response.shortCode,
         originalUrl: url,
-        shortUrl: `${window.location.origin}/${response.shortCode}`, // Use current domain
+        shortUrl: `https://url-shortener-obve.onrender.com/${response.shortCode}`, // Use API gateway domain
         createdAt: response.createdAt || new Date().toISOString(),
         clicks: 0,
         uniqueVisitors: 0,
@@ -166,6 +193,17 @@ export function UrlShortener() {
       day: 'numeric',
       year: 'numeric'
     });
+  };
+  
+  // Function to toggle URL expansion
+  const toggleUrlExpand = (shortCode: string) => {
+    const updatedUrls = shortenedUrls.map(url => {
+      if (url.shortCode === shortCode) {
+        return { ...url, urlExpanded: !url.urlExpanded };
+      }
+      return url;
+    });
+    setShortenedUrls(updatedUrls);
   };
 
   return (
@@ -260,12 +298,23 @@ export function UrlShortener() {
                   <div className="space-y-4">
                     {/* URLs */}
                     <div className="space-y-2">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-4 w-full">
+                        <div className="flex-1 min-w-0 w-full overflow-hidden">
                           <div className="text-sm text-muted-foreground">Original URL</div>
-                          <p className="text-sm truncate font-mono bg-muted px-2 py-1 rounded">
-                            {item.originalUrl}
-                          </p>
+                          <div 
+                            className="cursor-pointer max-w-full"
+                            onClick={() => toggleUrlExpand(item.shortCode)}
+                          >
+                            {item.urlExpanded ? (
+                              <p className="text-sm font-mono bg-muted px-2 py-1 rounded break-words w-full">
+                                {item.originalUrl}
+                              </p>
+                            ) : (
+                              <p className="text-sm truncate font-mono bg-muted px-2 py-1 rounded w-full overflow-hidden text-ellipsis">
+                                {item.originalUrl}
+                              </p>
+                            )}
+                          </div>
                         </div>
                         <Button
                           variant="ghost"
@@ -281,13 +330,13 @@ export function UrlShortener() {
                         <div className="flex-1">
                           <div className="text-sm text-muted-foreground">Short URL</div>
                           <p className="text-lg font-mono text-primary font-semibold">
-                            {window.location.origin}/{item.shortCode}
+                            https://url-shortener-obve.onrender.com/{item.shortCode}
                           </p>
                         </div>
                         <Button
                           variant="success"
                           size="sm"
-                          onClick={() => copyToClipboard(`${window.location.origin}/${item.shortCode}`)}
+                          onClick={() => copyToClipboard(`https://url-shortener-obve.onrender.com/${item.shortCode}`)}
                           className="shrink-0"
                         >
                           <Copy className="h-4 w-4 mr-1" />

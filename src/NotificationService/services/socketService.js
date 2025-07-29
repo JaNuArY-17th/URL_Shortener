@@ -24,8 +24,13 @@ class SocketService {
     try {
       // Create Socket.IO server with CORS configuration
       this.io = new Server(server, {
-        cors: config.socketIO.cors
+        cors: config.socketIO.cors,
+        path: config.socketIO.path || '/socket.io',
       });
+
+      // Log that we're setting up Socket.IO
+      logger.info(`Initializing Socket.IO with path: ${config.socketIO.path || '/socket.io'}`);
+      logger.info(`Socket.IO CORS origins: ${JSON.stringify(config.socketIO.cors.origin)}`);
 
       // Authentication middleware
       this.io.use((socket, next) => {
@@ -40,6 +45,7 @@ class SocketService {
           // Verify JWT token
           const decoded = jwt.verify(token, config.jwt.secret);
           socket.user = { id: decoded.id };
+          logger.debug(`Socket authenticated for user: ${decoded.id}`);
           next();
         } catch (err) {
           logger.warn('Socket authentication error:', err);
@@ -56,7 +62,7 @@ class SocketService {
           return;
         }
         
-        logger.debug(`User ${userId} connected with socket ${socket.id}`);
+        logger.info(`User ${userId} connected with socket ${socket.id}`);
         
         // Track user's sockets
         if (!this.userSockets.has(userId)) {

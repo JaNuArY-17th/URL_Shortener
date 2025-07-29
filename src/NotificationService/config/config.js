@@ -1,28 +1,29 @@
 require('dotenv').config();
 
+// Check if we need to read the existing file first
 const config = {
   server: {
-    port: process.env.PORT || 3003,
+    port: process.env.PORT || 3004,
     nodeEnv: process.env.NODE_ENV || 'development'
   },
   db: {
     mongodb: {
-      uri: process.env.MONGODB_URI || 'mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/notification?retryWrites=true&w=majority&appName=Cluster1'
+      uri: process.env.MONGODB_URI || 'mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/notifications?retryWrites=true&w=majority&appName=Cluster1'
     }
   },
   jwt: {
-    secret: process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production',
-    expiresIn: process.env.JWT_EXPIRES_IN || '24h'
+    secret: process.env.JWT_SECRET || 'your_jwt_secret',
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d'
   },
   rabbitmq: {
     uri: process.env.RABBITMQ_URI || 'amqp://localhost:5672',
     exchanges: {
-      urlEvents: 'url-events',
+      urlEvents: 'url-shortener-events',
       userEvents: 'user-events'
     },
     queues: {
-      urlNotifications: 'url-notifications',
-      userNotifications: 'user-notifications'
+      urlNotifications: 'notification-service.url-events',
+      userNotifications: 'notification-service.user-events'
     },
     routingKeys: {
       urlCreated: 'url.created',
@@ -33,50 +34,31 @@ const config = {
   cors: {
     origins: process.env.CORS_ORIGINS ? 
       process.env.CORS_ORIGINS.split(',') : 
-      ['http://localhost:8080', 'http://localhost:3000']
-  },
-  rateLimit: {
-    api: {
-      max: parseInt(process.env.API_RATE_LIMIT_MAX) || 100,
-      windowMs: parseInt(process.env.API_RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000 // 15 minutes
-    }
-  },
-  logging: {
-    level: process.env.LOG_LEVEL || 'info',
-    directory: process.env.LOG_DIRECTORY || 'logs'
-  },
-  email: {
-    enabled: process.env.EMAIL_ENABLED === 'true',
-    from: process.env.EMAIL_FROM || 'noreply@urlshortener.example.com',
-    service: process.env.EMAIL_SERVICE || 'smtp',
-    host: process.env.EMAIL_HOST || 'smtp.example.com',
-    port: parseInt(process.env.EMAIL_PORT) || 587,
-    secure: process.env.EMAIL_SECURE === 'true',
-    auth: {
-      user: process.env.EMAIL_USER || '',
-      pass: process.env.EMAIL_PASS || ''
-    }
+      ['http://localhost:8080', 'http://localhost:3000', 'http://localhost:5000', 'https://url-shortener-obve.onrender.com']
   },
   socketIO: {
-    enabled: process.env.SOCKET_IO_ENABLED === 'true',
+    enabled: process.env.SOCKET_IO_ENABLED !== 'false',
+    path: process.env.SOCKET_IO_PATH || '/api/notifications/socket.io',
     cors: {
-      origin: process.env.SOCKET_IO_ORIGIN ? 
-        process.env.SOCKET_IO_ORIGIN.split(',') : 
-        ['http://localhost:8080', 'http://localhost:3000'],
+      origin: process.env.SOCKET_IO_CORS_ORIGIN ? 
+        process.env.SOCKET_IO_CORS_ORIGIN.split(',') :
+        ['http://localhost:8080', 'http://localhost:3000', 'http://localhost:5000', 'https://url-shortener-obve.onrender.com'],
       methods: ["GET", "POST"],
+      allowedHeaders: ["content-type", "authorization"],
       credentials: true
     }
   },
-  notifications: {
-    retention: {
-      days: parseInt(process.env.NOTIFICATION_RETENTION_DAYS) || 30
+  email: {
+    service: process.env.EMAIL_SERVICE || 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
     },
-    defaultPreferences: {
-      email: process.env.DEFAULT_EMAIL_NOTIFICATIONS === 'true',
-      push: process.env.DEFAULT_PUSH_NOTIFICATIONS === 'true',
-      inApp: true
-    },
-    batchSize: parseInt(process.env.NOTIFICATION_BATCH_SIZE) || 50
+    from: process.env.EMAIL_FROM || 'noreply@urlshortener.com'
+  },
+  logging: {
+    level: process.env.LOG_LEVEL || 'info',
+    directory: process.env.LOG_DIRECTORY || './logs'
   }
 };
 

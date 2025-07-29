@@ -208,8 +208,10 @@ const publishRedirectEvent = async (eventData) => {
   }
   
   try {
+    // Include userId from URL doc to enable user-specific notifications
     const eventMessage = {
       ...eventData,
+      userId: eventData.userId, // Make sure userId is included for the notification service
       source: 'redirect-service',
       timestamp: new Date().toISOString()
     };
@@ -226,6 +228,7 @@ const publishRedirectEvent = async (eventData) => {
     
     logger.info('Published redirect event', {
       shortCode: eventData.shortCode,
+      userId: eventData.userId ? eventData.userId : 'anonymous', // Log userId for debugging
       routingKey: 'url.redirect'
     });
     

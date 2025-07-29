@@ -4,14 +4,14 @@ const logger = require('../services/logger');
 const authenticate = require('../middleware/authenticate');
 
 // Helper để tạo proxy middleware với logging và error handling
-const createProxyWithLogging = (target, pathRewrite = {}, requireAuth = false, isSwaggerUI = false) => {
+const createProxyWithLogging = (target, pathRewrite = {}, requireAuth = false, isSwaggerUI = false, ws = false) => {
   // Nếu pathRewrite được truyền là undefined hoặc null, chuyển thành object rỗng
   if (pathRewrite == null) {
     pathRewrite = {};
   }
   // Nếu pathRewrite không phải object hay function hợp lệ, ghi log cảnh báo và bỏ qua
   const validPathRewrite = (typeof pathRewrite === 'function') ||
-                           (typeof pathRewrite === 'object' && Object.keys(pathRewrite).length > 0);
+                         (typeof pathRewrite === 'object' && Object.keys(pathRewrite).length > 0);
 
   const middleware = [];
   
@@ -26,6 +26,7 @@ const createProxyWithLogging = (target, pathRewrite = {}, requireAuth = false, i
     changeOrigin: true,
     // Chỉ thêm pathRewrite khi hợp lệ để tránh ERR_PATH_REWRITER_CONFIG
     ...(validPathRewrite ? { pathRewrite } : {}),
+    ws, // Support WebSockets if enabled
     logLevel: 'silent', // Tắt logs mặc định của http-proxy-middleware
     onProxyReq: (proxyReq, req, res) => {
       // Ghi log khi gửi proxy request
@@ -85,13 +86,15 @@ const createProxyWithLogging = (target, pathRewrite = {}, requireAuth = false, i
         requestId: req.id
       });
       
-      // Trả về lỗi
-      res.status(502).json({
-        status: 'error',
-        message: 'Bad Gateway',
-        error: err.message,
-        requestId: req.id
-      });
+      // Trả về lỗi nếu không phải WebSocket request
+      if (!req.ws) {
+        res.status(502).json({
+          status: 'error',
+          message: 'Bad Gateway',
+          error: err.message,
+          requestId: req.id
+        });
+      }
     }
   };
   
@@ -141,11 +144,13 @@ const setupProxyRoutes = (app) => {
     true // Yêu cầu xác thực
   ));
   
-  // Notification Service Routes
+  // Notification Service Routes with WebSocket support
   app.use('/api/notifications', ...createProxyWithLogging(
     config.services.notification,
-    // (path) => '/api/notifications' + path,
-    true // Yêu cầu xác thực
+    {}, // No path rewrite
+    true, // Yêu cầu xác thực
+    false, // Not Swagger UI
+    true   // Enable WebSockets
   ));
   
   // API Docs routes
