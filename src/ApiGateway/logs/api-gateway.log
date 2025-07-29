@@ -890,3 +890,11 @@
 {"level":"warn","message":"Not Found - /urls/api-docs/","method":"GET","path":"/urls/api-docs/","requestId":"cd622a13-66e4-43c5-bd08-911ae98e1757","service":"api-gateway","statusCode":404,"timestamp":"2025-07-29 09:37:19"}
 {"level":"info","message":"::1 - - [29/Jul/2025:02:37:19 +0000] \"GET /urls/api-docs/ HTTP/1.1\" 404 165 \"-\" \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0\"","service":"api-gateway","timestamp":"2025-07-29 09:37:19"}
 {"level":"info","message":"::ffff:127.0.0.1 - - [29/Jul/2025:02:37:54 +0000] \"GET /api/urls HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-29 09:37:54"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [29/Jul/2025:02:50:38 +0000] \"GET /api/urls?userId= HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-29 09:50:38"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [29/Jul/2025:02:50:58 +0000] \"GET /api/urls?userId=68874ce0e0897c4c943730d4 HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-29 09:50:58"}
+{"level":"info","message":"API Gateway đang chạy tại http://localhost:5000","service":"api-gateway","timestamp":"2025-07-29 09:59:21"}
+{"level":"info","message":"API Gateway đang chạy tại http://localhost:5000","service":"api-gateway","timestamp":"2025-07-29 10:22:27"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [29/Jul/2025:03:23:00 +0000] \"POST /api/auth/login HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-29 10:23:00"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [29/Jul/2025:03:23:05 +0000] \"POST /api/auth/login HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-29 10:23:05"}
+{"level":"info","message":"API Gateway đang chạy tại http://localhost:5000","service":"api-gateway","timestamp":"2025-07-29 11:17:49"}
+{"level":"info","message":"::ffff:127.0.0.1 - - [29/Jul/2025:04:19:14 +0000] \"GET /api/analytics/overview HTTP/1.1\" 200 - \"-\" \"insomnia/11.3.0\"","service":"api-gateway","timestamp":"2025-07-29 11:19:14"}

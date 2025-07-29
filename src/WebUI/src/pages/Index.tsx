@@ -4,8 +4,21 @@ import { UrlShortener } from "@/components/UrlShortener";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Zap, Shield, BarChart3, Globe } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/dashboard");
+    }
+  }, [isAuthenticated, navigate]);
+
   return (
     <div className="min-h-screen bg-background">
       <Header />

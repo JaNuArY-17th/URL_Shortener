@@ -19,7 +19,13 @@ import {
   Settings,
   User,
   LogOut,
-  Loader2
+  Loader2,
+  RefreshCw,
+  Clock,
+  Tag,
+  XCircle,
+  Check,
+  AlertCircle
 } from "lucide-react";
 
 interface ShortenedUrl {
@@ -30,6 +36,15 @@ interface ShortenedUrl {
   clicks: number;
   uniqueVisitors?: number;
   active?: boolean;
+  expanded?: boolean;
+  details?: {
+    metadata?: {
+      tags?: string[];
+    };
+    expiresAt?: string | null;
+    lastAccessedAt?: string | null;
+    updatedAt?: string;
+  };
 }
 
 interface AnalyticsSummary {
@@ -42,6 +57,7 @@ export default function Dashboard() {
   const { user, logout } = useAuth();
   const [url, setUrl] = useState("");
   const [customAlias, setCustomAlias] = useState("");
+  const [expiresAt, setExpiresAt] = useState<string>("");
   const [showCustomAlias, setShowCustomAlias] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingUrls, setIsLoadingUrls] = useState(true);
@@ -54,16 +70,19 @@ export default function Dashboard() {
   });
   const { toast } = useToast();
 
-  // Fetch data when component mounts
+  // Fetch data when component mounts or user changes
   useEffect(() => {
-    fetchUrls();
-    fetchAnalyticsSummary();
-  }, []);
+    if (user?.id) {
+      fetchUrls();
+      fetchAnalyticsSummary();
+    }
+  }, [user]);
 
   const fetchUrls = async () => {
     try {
       setIsLoadingUrls(true);
-      const response = await urlAPI.getUrls(1, 10);
+      // Pass user ID to get only the current user's URLs
+      const response = await urlAPI.getUrls(1, 10, true, user?.id);
       
       if (response?.data) {
         setShortenedUrls(response.data.map((url: any) => ({
@@ -141,21 +160,15 @@ export default function Dashboard() {
     setIsLoading(true);
 
     try {
-      // Call API to create short URL
-      const response = await urlAPI.shorten(url, customAlias || undefined);
-      
-      // Add new URL to the list
-      const newUrl: ShortenedUrl = {
-        shortCode: response.shortCode,
+      // Call API to create short URL with proper payload
+      const response = await urlAPI.shorten({
         originalUrl: url,
-        shortUrl: `${window.location.origin}/${response.shortCode}`,
-        createdAt: response.createdAt || new Date().toISOString(),
-        clicks: 0,
-        uniqueVisitors: 0,
-        active: true
-      };
-
-      setShortenedUrls(prev => [newUrl, ...prev]);
+        customAlias: customAlias || undefined,
+        expiresAt: expiresAt || undefined
+      });
+      
+      // After successful creation, refresh the URLs list
+      await fetchUrls();
       
       // Update URL count in stats
       setStats(prev => ({
@@ -166,6 +179,7 @@ export default function Dashboard() {
       // Reset form
       setUrl("");
       setCustomAlias("");
+      setExpiresAt("");
       setShowCustomAlias(false);
 
       toast({
@@ -200,12 +214,133 @@ export default function Dashboard() {
     }
   };
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Never';
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
     });
+  };
+  
+  const toggleUrlDetails = async (shortCode: string) => {
+    // Find the URL in the list
+    const updatedUrls = [...shortenedUrls];
+    const urlIndex = updatedUrls.findIndex(u => u.shortCode === shortCode);
+    
+    if (urlIndex === -1) return;
+    
+    // Toggle expanded state
+    updatedUrls[urlIndex].expanded = !updatedUrls[urlIndex].expanded;
+    
+    // If expanding and no details available, fetch them
+    if (updatedUrls[urlIndex].expanded && !updatedUrls[urlIndex].details) {
+      try {
+        const response = await urlAPI.getUrl(shortCode);
+        
+        if (response?.data) {
+          updatedUrls[urlIndex].details = {
+            metadata: response.data.metadata,
+            expiresAt: response.data.expiresAt,
+            lastAccessedAt: response.data.lastAccessedAt,
+            updatedAt: response.data.updatedAt
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching URL details:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load URL details",
+          variant: "destructive",
+        });
+      }
+    }
+    
+    // Update state with expanded/collapsed URLs
+    setShortenedUrls(updatedUrls);
+  };
+  
+  // Function to disable a URL
+  const handleDisableUrl = async (shortCode: string) => {
+    try {
+      setIsLoading(true);
+      await urlAPI.disableUrl(shortCode);
+      
+      // Update the URL in the list
+      const updatedUrls = shortenedUrls.map(url => {
+        if (url.shortCode === shortCode) {
+          return { ...url, active: false };
+        }
+        return url;
+      });
+      
+      setShortenedUrls(updatedUrls);
+      
+      toast({
+        title: "Success",
+        description: "URL has been disabled",
+      });
+    } catch (error) {
+      console.error('Error disabling URL:', error);
+      toast({
+        title: "Error",
+        description: "Failed to disable URL",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Function to refresh URL cache
+  const handleRefreshCache = async (shortCode: string) => {
+    try {
+      setIsLoading(true);
+      await urlAPI.refreshCache(shortCode);
+      
+      toast({
+        title: "Success",
+        description: "URL cache has been refreshed",
+      });
+    } catch (error) {
+      console.error('Error refreshing cache:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh cache",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Function to update URL
+  const handleUpdateUrl = async (shortCode: string, data: {
+    active?: boolean;
+    expiresAt?: string | null;
+    metadata?: { tags: string[] };
+  }) => {
+    try {
+      setIsLoading(true);
+      await urlAPI.updateUrl(shortCode, data);
+      
+      // Update the URL in the list and refetch to get fresh data
+      await fetchUrls();
+      
+      toast({
+        title: "Success",
+        description: "URL has been updated",
+      });
+    } catch (error) {
+      console.error('Error updating URL:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update URL",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -360,16 +495,26 @@ export default function Dashboard() {
               />
               
               {showCustomAlias && (
-                <div className="flex gap-2 items-center">
-                  <span className="text-sm text-muted-foreground whitespace-nowrap">Custom alias:</span>
-                  <Input 
-                    placeholder="your-custom-code (optional)"
-                    value={customAlias}
-                    onChange={(e) => setCustomAlias(e.target.value)}
-                    className="flex-1"
-                    onKeyPress={(e) => e.key === 'Enter' && handleShorten()}
-                  />
-                </div>
+                <>
+                  <div className="flex gap-2 items-center">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">Custom alias:</span>
+                    <Input 
+                      placeholder="your-custom-code (optional)"
+                      value={customAlias}
+                      onChange={(e) => setCustomAlias(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">Expires at:</span>
+                    <Input
+                      type="datetime-local"
+                      value={expiresAt}
+                      onChange={(e) => setExpiresAt(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                </>
               )}
 
               <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
@@ -380,7 +525,7 @@ export default function Dashboard() {
                   onClick={() => setShowCustomAlias(!showCustomAlias)}
                   className="sm:ml-auto"
                 >
-                  {showCustomAlias ? "Hide custom options" : "Custom options"}
+                  {showCustomAlias ? "Hide advanced options" : "Advanced options"}
                 </Button>
                 
                 <Button 
@@ -457,13 +602,13 @@ export default function Dashboard() {
                           <div className="flex-1">
                             <div className="text-sm text-muted-foreground">Short URL</div>
                             <p className="text-lg font-mono text-primary font-semibold">
-                              {item.shortUrl}
+                              {window.location.origin}/{item.shortCode}
                             </p>
                           </div>
                           <Button
                             variant="success"
                             size="sm"
-                            onClick={() => copyToClipboard(item.shortUrl)}
+                            onClick={() => copyToClipboard(`${window.location.origin}/${item.shortCode}`)}
                             className="shrink-0"
                           >
                             <Copy className="h-4 w-4 mr-1" />
@@ -483,19 +628,185 @@ export default function Dashboard() {
                             <Calendar className="h-4 w-4" />
                             <span>{formatDate(item.createdAt)}</span>
                           </div>
+                          {item.active === false ? (
+                            <Badge variant="destructive" className="text-xs py-0 h-5 gap-1">
+                              <AlertCircle className="h-3 w-3" />
+                              Disabled
+                            </Badge>
+                          ) : (
+                            <Badge variant="success" className="text-xs py-0 h-5 gap-1">
+                              <Check className="h-3 w-3" />
+                              Active
+                            </Badge>
+                          )}
                         </div>
                         <Button 
                           variant="ghost" 
                           size="sm" 
                           className="gap-2 text-xs"
-                          asChild
+                          onClick={() => toggleUrlDetails(item.shortCode)}
                         >
-                          <Link to={`/analytics?url=${item.shortCode}`}>
-                            <BarChart3 className="h-3 w-3" />
-                            Details
-                          </Link>
+                          <BarChart3 className="h-3 w-3" />
+                          {item.expanded ? 'Hide Details' : 'Show Details'}
                         </Button>
                       </div>
+
+                      {/* Expanded Details Section */}
+                      {item.expanded && (
+                        <div className="pt-3 mt-2 border-t border-dashed animate-fade-down">
+                          <h4 className="text-sm font-medium mb-2">URL Details</h4>
+                          
+                          {!item.details ? (
+                            <div className="flex justify-center py-4">
+                              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                              <div>
+                                <p className="text-muted-foreground">Created</p>
+                                <p className="font-medium">{formatDate(item.createdAt)}</p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-muted-foreground">Last Updated</p>
+                                <p className="font-medium">{formatDate(item.details.updatedAt)}</p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-muted-foreground">Expires</p>
+                                <p className="font-medium">{item.details.expiresAt ? formatDate(item.details.expiresAt) : 'Never'}</p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-muted-foreground">Last Clicked</p>
+                                <p className="font-medium">{formatDate(item.details.lastAccessedAt)}</p>
+                              </div>
+                              
+                              <div className="col-span-full">
+                                <p className="text-muted-foreground">Tags</p>
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  {item.details.metadata?.tags && item.details.metadata.tags.length > 0 ? (
+                                    item.details.metadata.tags.map((tag, index) => (
+                                      <Badge key={index} variant="outline">{tag}</Badge>
+                                    ))
+                                  ) : (
+                                    <p className="text-xs text-muted-foreground">No tags</p>
+                                  )}
+                                </div>
+                              </div>
+                              
+                                                            <div className="col-span-full mt-2">
+                                <div className="flex flex-wrap gap-2">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="gap-1 text-xs flex-1"
+                                    asChild
+                                  >
+                                    <Link to={`/analytics?url=${item.shortCode}`}>
+                                      <BarChart3 className="h-3 w-3" />
+                                      Analytics
+                                    </Link>
+                                  </Button>
+                                  
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="gap-1 text-xs flex-1"
+                                    onClick={() => handleRefreshCache(item.shortCode)}
+                                  >
+                                    <RefreshCw className="h-3 w-3" />
+                                    Refresh Cache
+                                  </Button>
+                                  
+                                  {item.active !== false && (
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="gap-1 text-xs flex-1 text-destructive hover:text-destructive"
+                                      onClick={() => handleDisableUrl(item.shortCode)}
+                                    >
+                                      <XCircle className="h-3 w-3" />
+                                      Disable
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {/* URL Update Form */}
+                              <div className="col-span-full mt-4 pt-3 border-t">
+                                <h4 className="text-sm font-medium mb-3">Update URL Settings</h4>
+                                <div className="space-y-3">
+                                  <div>
+                                    <label className="text-xs text-muted-foreground">Expiration Date</label>
+                                    <Input
+                                      type="datetime-local"
+                                      size="sm"
+                                      className="h-8 text-xs mt-1"
+                                      defaultValue={item.details?.expiresAt ? new Date(item.details.expiresAt).toISOString().slice(0, 16) : ''}
+                                      onChange={(e) => {
+                                        // Just store temporarily, will submit on button click
+                                        item.details = { 
+                                          ...item.details,
+                                          expiresAt: e.target.value || null
+                                        };
+                                      }}
+                                    />
+                                  </div>
+                                  
+                                  <div>
+                                    <label className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <Tag className="h-3 w-3" />
+                                      Tags (comma separated)
+                                    </label>
+                                    <Input
+                                      type="text"
+                                      size="sm"
+                                      className="h-8 text-xs mt-1"
+                                      placeholder="e.g. important, marketing, temporary"
+                                      defaultValue={item.details?.metadata?.tags?.join(', ') || ''}
+                                      onChange={(e) => {
+                                        const tags = e.target.value
+                                          .split(',')
+                                          .map(tag => tag.trim())
+                                          .filter(tag => tag);
+                                        
+                                        // Just store temporarily
+                                        item.details = {
+                                          ...item.details,
+                                          metadata: {
+                                            ...(item.details?.metadata || {}),
+                                            tags
+                                          }
+                                        };
+                                      }}
+                                    />
+                                  </div>
+                                  
+                                  <Button 
+                                    variant="default" 
+                                    size="sm" 
+                                    className="gap-1 text-xs w-full"
+                                    onClick={() => {
+                                      if (!item.details) return;
+                                      
+                                      handleUpdateUrl(item.shortCode, {
+                                        expiresAt: item.details.expiresAt,
+                                        metadata: {
+                                          tags: item.details.metadata?.tags || []
+                                        }
+                                      });
+                                    }}
+                                  >
+                                    <Check className="h-3 w-3" />
+                                    Save Changes
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

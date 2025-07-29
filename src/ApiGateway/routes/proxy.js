@@ -137,14 +137,14 @@ const setupProxyRoutes = (app) => {
   // Analytics Service Routes
   app.use('/api/analytics', ...createProxyWithLogging(
     config.services.analytics,
-    (path) => '/api/analytics' + path,
+    // (path) => '/api/analytics' + path,
     true // Yêu cầu xác thực
   ));
   
   // Notification Service Routes
   app.use('/api/notifications', ...createProxyWithLogging(
     config.services.notification,
-    (path) => '/api/notifications' + path,
+    // (path) => '/api/notifications' + path,
     true // Yêu cầu xác thực
   ));
   

@@ -75,7 +75,23 @@ export const urlAPI = {
     expiresAt?: string;
     metadata?: Record<string, any>;
   }) => {
-    const response = await api.post('/api/url-shortener', payload);
+    // Get the current user from localStorage
+    const userJson = localStorage.getItem('user');
+    let userId;
+    
+    if (userJson) {
+      try {
+        const user = JSON.parse(userJson);
+        userId = user.id;
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
+    
+    const response = await api.post('/api/url-shortener', {
+      ...payload,
+      userId: userId // Include user ID in the request
+    });
     return response.data;
   },
   
@@ -106,6 +122,11 @@ export const urlAPI = {
   
   disableUrl: async (shortCode: string) => {
     const response = await api.post(`/api/urls/${shortCode}/disable`);
+    return response.data;
+  },
+  
+  refreshCache: async (shortCode: string) => {
+    const response = await api.post(`/api/urls/${shortCode}/refresh-cache`);
     return response.data;
   },
   
@@ -143,6 +164,24 @@ export const analyticsAPI = {
   
   getSummary: async () => {
     const response = await api.get('/api/analytics/summary');
+    return response.data;
+  },
+  
+  exportAnalytics: async (params: {
+    shortCode?: string;
+    startDate?: string;
+    endDate?: string;
+    format?: 'csv' | 'json' | 'xlsx';
+  } = {}) => {
+    const query = new URLSearchParams();
+    if (params.shortCode) query.append('shortCode', params.shortCode);
+    if (params.startDate) query.append('startDate', params.startDate);
+    if (params.endDate) query.append('endDate', params.endDate);
+    if (params.format) query.append('format', params.format);
+    
+    const response = await api.get(`/api/analytics/export?${query.toString()}`, {
+      responseType: 'blob'
+    });
     return response.data;
   }
 };

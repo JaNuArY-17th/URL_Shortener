@@ -30,17 +30,19 @@ export function UrlShortener() {
   const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && user) {
       fetchUserUrls();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
 
   const fetchUserUrls = async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !user?.id) return;
 
     try {
       setIsLoadingUrls(true);
-      const response = await urlAPI.getUrls(1, 5, true, user?.id);
+      // Pass the user ID explicitly to filter URLs belonging to the current user
+      const response = await urlAPI.getUrls(1, 5, true, user.id);
+
       if (response?.data) {
         setShortenedUrls(response.data.map((url: any) => ({
           shortCode: url.shortCode,
@@ -101,19 +103,26 @@ export function UrlShortener() {
         customAlias: customAlias || undefined,
         expiresAt: expiresAt || undefined,
       });
-      
+
       // Add new URL to the list
       const newUrl: ShortenedUrl = {
         shortCode: response.shortCode,
         originalUrl: url,
         shortUrl: `${window.location.origin}/${response.shortCode}`, // Use current domain
-        createdAt: response.createdAt,
+        createdAt: response.createdAt || new Date().toISOString(),
         clicks: 0,
         uniqueVisitors: 0,
         active: true
       };
 
-      setShortenedUrls(prev => [newUrl, ...prev]);
+      // Refresh the URLs list to include the new one with proper user association
+      if (isAuthenticated && user?.id) {
+        // If user is logged in, fetch updated URLs
+        await fetchUserUrls();
+      } else {
+        // If not logged in, just update the local state
+        setShortenedUrls(prev => [newUrl, ...prev]);
+      }
       setUrl("");
       setCustomAlias("");
       setExpiresAt("");
@@ -181,43 +190,43 @@ export function UrlShortener() {
               className="w-full"
               onKeyPress={(e) => e.key === 'Enter' && handleShorten()}
             />
-            
+
             {showCustomAlias && (
               <>
-              <div className="flex gap-2 items-center">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">Custom alias:</span>
-                <Input 
-                  placeholder="your-custom-code (optional)"
-                  value={customAlias}
-                  onChange={(e) => setCustomAlias(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-              <div className="flex gap-2 items-center">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">Expires at:</span>
-                <Input
-                  type="datetime-local"
-                  value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
+                <div className="flex gap-2 items-center">
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">Custom alias:</span>
+                  <Input
+                    placeholder="your-custom-code (optional)"
+                    value={customAlias}
+                    onChange={(e) => setCustomAlias(e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
+                <div className="flex gap-2 items-center">
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">Expires at:</span>
+                  <Input
+                    type="datetime-local"
+                    value={expiresAt}
+                    onChange={(e) => setExpiresAt(e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
               </>
             )}
 
             <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 size="sm"
                 onClick={() => setShowCustomAlias(!showCustomAlias)}
                 className="sm:ml-auto"
               >
                 {showCustomAlias ? "Hide advanced options" : "Advanced options"}
               </Button>
-              
-              <Button 
-                onClick={handleShorten} 
+
+              <Button
+                onClick={handleShorten}
                 disabled={isLoading}
                 variant="gradient"
                 size="lg"
@@ -272,13 +281,13 @@ export function UrlShortener() {
                         <div className="flex-1">
                           <div className="text-sm text-muted-foreground">Short URL</div>
                           <p className="text-lg font-mono text-primary font-semibold">
-                            {item.shortUrl}
+                            {window.location.origin}/{item.shortCode}
                           </p>
                         </div>
                         <Button
                           variant="success"
                           size="sm"
-                          onClick={() => copyToClipboard(item.shortUrl)}
+                          onClick={() => copyToClipboard(`${window.location.origin}/${item.shortCode}`)}
                           className="shrink-0"
                         >
                           <Copy className="h-4 w-4 mr-1" />
