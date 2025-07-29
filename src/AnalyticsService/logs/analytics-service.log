@@ -1,0 +1,24 @@
+{"level":"info","message":"Connecting to RabbitMQ...","service":"analytics-service","timestamp":"2025-07-29 20:52:10"}
+{"level":"info","message":"API Documentation available at http://localhost:3002/api-docs","service":"analytics-service","timestamp":"2025-07-29 20:52:10"}
+{"level":"info","message":"Analytics Service running on port 3002","service":"analytics-service","timestamp":"2025-07-29 20:52:10"}
+{"level":"info","message":"API Documentation available at http://localhost:3002/api-docs","service":"analytics-service","timestamp":"2025-07-29 20:52:10"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"analytics-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-29 20:52:10"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 6 seconds (attempt 1/20)...","service":"analytics-service","timestamp":"2025-07-29 20:52:10"}
+{"level":"info","message":"MongoDB connected","service":"analytics-service","timestamp":"2025-07-29 20:52:10"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"analytics-service","timestamp":"2025-07-29 20:52:16"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"analytics-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-29 20:52:16"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 9 seconds (attempt 2/20)...","service":"analytics-service","timestamp":"2025-07-29 20:52:16"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"analytics-service","timestamp":"2025-07-29 20:52:24"}
+{"code":"ECONNREFUSED","level":"error","message":"Failed to connect to RabbitMQ:","service":"analytics-service","stack":"AggregateError [ECONNREFUSED]: \n    at internalConnectMultiple (node:net:1118:18)\n    at afterConnectMultiple (node:net:1685:7)","timestamp":"2025-07-29 20:52:24"}
+{"level":"info","message":"Attempting to reconnect to RabbitMQ in 12 seconds (attempt 3/20)...","service":"analytics-service","timestamp":"2025-07-29 20:52:24"}
+{"level":"info","message":"Connecting to RabbitMQ...","service":"analytics-service","timestamp":"2025-07-29 20:53:35"}
+{"level":"info","message":"API Documentation available at http://localhost:3002/api-docs","service":"analytics-service","timestamp":"2025-07-29 20:53:36"}
+{"level":"info","message":"Analytics Service running on port 3002","service":"analytics-service","timestamp":"2025-07-29 20:53:36"}
+{"level":"info","message":"API Documentation available at http://localhost:3002/api-docs","service":"analytics-service","timestamp":"2025-07-29 20:53:36"}
+{"level":"info","message":"MongoDB connected","service":"analytics-service","timestamp":"2025-07-29 20:53:36"}
+{"level":"info","message":"RabbitMQ exchanges and queues configured","service":"analytics-service","timestamp":"2025-07-29 20:53:39"}
+{"level":"info","message":"Started consuming messages from RabbitMQ","service":"analytics-service","timestamp":"2025-07-29 20:53:39"}
+{"level":"info","message":"Connected to RabbitMQ","service":"analytics-service","timestamp":"2025-07-29 20:53:39"}
+{"level":"info","message":"[3726ee74-91cf-43f2-8d1b-f81b19d42b1a] GET /api/analytics/overview/?userId=68874ce0e0897c4c943730d4 200 127 - 52.537 ms","service":"analytics-service","timestamp":"2025-07-29 20:54:25"}
+{"level":"info","message":"[25ff8010-9a33-459b-9516-d092427955ab] GET /api/analytics/overview/ 400 46 - 1.343 ms","service":"analytics-service","timestamp":"2025-07-29 20:54:38"}
+{"level":"info","message":"[748ea61d-b270-4e96-a9e0-f46938fdd76d] GET /api/analytics/overview/?userId=68874ce0e0897c4c943730d4 200 127 - 33.229 ms","service":"analytics-service","timestamp":"2025-07-29 20:54:43"}

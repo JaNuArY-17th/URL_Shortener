@@ -190,8 +190,11 @@ class MessageHandler {
       await UrlStat.updateOne(
         { shortCode },
         {
+          // Set userId every time in case it was missing previously
+          $set: {
+            userId: userId || null
+          },
           $setOnInsert: {
-            userId: userId || null,
             originalUrl: originalUrl || '',
             urlCreatedAt: new Date(timestamp)
           }

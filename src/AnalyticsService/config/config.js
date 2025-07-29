@@ -15,7 +15,7 @@ const config = {
     expiresIn: process.env.JWT_EXPIRES_IN || '24h'
   },
   rabbitmq: {
-    uri: process.env.RABBITMQ_URI || 'amqp://localhost:5672',
+    uri: process.env.RABBITMQ_URI || 'amqps://irnrcdfe:i8Sii2DlRiD1u2fobfw_gIuEuQa-z-4f@chimpanzee.rmq.cloudamqp.com/irnrcdfe',
     exchanges: {
       urlEvents: 'url-shortener-events'
     },
