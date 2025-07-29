@@ -77,29 +77,44 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
         startDate = firstEvent ? new Date(firstEvent.timestamp) : new Date(0);
     }
     
-    // Base query
+    // Base query for event data
     const query = { timestamp: { $gte: startDate } };
     
+    // Base query for URL stats
+    let urlStatQuery = {};
+    
     // If user is authenticated, filter by userId
-    if (req.user?.id) {
-      // First, get all URLs belonging to this user
-      const userUrlStats = await UrlStat.find({ userId: req.user.id }).select('shortCode');
+    const userId = req.user?.id;
+    
+    if (userId) {
+      // Add filter for URL stats by userId
+      urlStatQuery.userId = userId;
+      
+      // Get URL shortCodes for this user to filter click events
+      const userUrlStats = await UrlStat.find(urlStatQuery).select('shortCode');
       const userShortCodes = userUrlStats.map(stat => stat.shortCode);
       
-      // Add filter for user's URLs only
       if (userShortCodes.length > 0) {
+        // Filter click events by user's URLs
         query.shortCode = { $in: userShortCodes };
+        
+        // Log for debugging
+        logger.debug(`Filtering overview for user ${userId} with ${userShortCodes.length} URLs`);
       } else {
         // If user has no URLs, return empty results
+        logger.debug(`User ${userId} has no URLs, returning empty overview`);
         return res.json({
+          period,
           totalClicks: 0,
           uniqueVisitors: 0,
+          topUrls: [],
           clicksByCountry: [],
           clicksByDevice: [],
-          clicksByReferrer: [],
-          clicksOverTime: []
+          clicksByReferer: []
         });
       }
+    } else {
+      logger.debug('No user ID provided, returning global overview');
     }
     
     // Get total clicks
@@ -109,12 +124,7 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
     const uniqueVisitors = await ClickEvent.distinct('visitorHash', query);
     
     // Get top URLs (filtered by user if authenticated)
-    let topUrlsQuery = {};
-    if (req.user?.id) {
-      topUrlsQuery.userId = req.user.id;
-    }
-    
-    const topUrls = await UrlStat.find(topUrlsQuery)
+    const topUrls = await UrlStat.find(urlStatQuery)
       .sort({ totalClicks: -1 })
       .limit(10)
       .select('shortCode originalUrl totalClicks uniqueVisitors userId');
@@ -138,9 +148,9 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
     // Get clicks by referrer
     const clicksByReferer = await ClickEvent.aggregate([
       { $match: query },
+      // Remainder of the referrer aggregation logic
       { 
         $addFields: {
-          // Extract domain from referrer
           refererDomain: {
             $cond: {
               if: { $eq: ['$referer', 'direct'] },
@@ -148,7 +158,6 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
               else: {
                 $let: {
                   vars: {
-                    // Extract hostname from URL
                     parts: { $split: ['$referer', '/'] }
                   },
                   in: {
@@ -194,8 +203,10 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
       }))
     };
     
+    logger.debug(`Overview data prepared: ${totalClicks} total clicks, ${uniqueVisitors.length} unique visitors`);
     res.json(formattedData);
   } catch (error) {
+    logger.error('Error in /api/analytics/overview:', error);
     next(error);
   }
 });
@@ -224,8 +235,12 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
     let urlStatQuery = {};
     
     // If user is authenticated, filter by userId
-    if (req.user?.id) {
-      urlStatQuery.userId = req.user.id;
+    const userId = req.user?.id;
+    if (userId) {
+      urlStatQuery.userId = userId;
+      logger.debug(`Filtering summary for user ${userId}`);
+    } else {
+      logger.debug('No user ID provided, returning global summary');
     }
     
     // Get active URLs count
@@ -261,56 +276,66 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
           timestamp: { $gte: startOfDay }
         });
       }
+    } else {
+      logger.debug(`No URLs found for ${userId ? 'user ' + userId : 'global'} summary`);
     }
     
-    // Get top referrers 
-    const topReferrers = await ClickEvent.aggregate([
-      { 
-        $match: req.user?.id ? {
-          shortCode: { $in: urlStats.map(stat => stat.shortCode) }
-        } : {} 
-      },
-      {
-        $addFields: {
-          refererDomain: {
-            $cond: {
-              if: { $eq: ['$referer', 'direct'] },
-              then: 'direct',
-              else: {
-                $let: {
-                  vars: { parts: { $split: ['$referer', '/'] } },
-                  in: {
-                    $cond: {
-                      if: { $gt: [{ $size: '$$parts' }, 2] },
-                      then: { $arrayElemAt: ['$$parts', 2] },
-                      else: '$referer'
+    // Get top referrers based on user's URLs
+    let topReferrers = [];
+    if (urlStats.length > 0) {
+      const shortCodes = urlStats.map(stat => stat.shortCode);
+      topReferrers = await ClickEvent.aggregate([
+        { 
+          $match: {
+            shortCode: { $in: shortCodes }
+          }
+        },
+        {
+          $addFields: {
+            refererDomain: {
+              $cond: {
+                if: { $eq: ['$referer', 'direct'] },
+                then: 'direct',
+                else: {
+                  $let: {
+                    vars: { parts: { $split: ['$referer', '/'] } },
+                    in: {
+                      $cond: {
+                        if: { $gt: [{ $size: '$$parts' }, 2] },
+                        then: { $arrayElemAt: ['$$parts', 2] },
+                        else: '$referer'
+                      }
                     }
                   }
                 }
               }
             }
           }
-        }
-      },
-      { $group: { _id: '$refererDomain', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 5 }
-    ]);
+        },
+        { $group: { _id: '$refererDomain', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 }
+      ]);
+    }
     
-    // Get top locations
-    const topLocations = await ClickEvent.aggregate([
-      { 
-        $match: req.user?.id ? {
-          shortCode: { $in: urlStats.map(stat => stat.shortCode) }
-        } : {} 
-      },
-      { $group: { _id: '$countryCode', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 5 }
-    ]);
+    // Get top locations based on user's URLs
+    let topLocations = [];
+    if (urlStats.length > 0) {
+      const shortCodes = urlStats.map(stat => stat.shortCode);
+      topLocations = await ClickEvent.aggregate([
+        { 
+          $match: {
+            shortCode: { $in: shortCodes }
+          }
+        },
+        { $group: { _id: '$countryCode', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 }
+      ]);
+    }
     
     // Format response
-    res.json({
+    const response = {
       totalClicks,
       clicksToday,
       activeUrls,
@@ -323,8 +348,12 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
         location: item._id || 'unknown',
         count: item.count
       }))
-    });
+    };
+    
+    logger.debug(`Summary data prepared: ${totalClicks} total clicks, ${activeUrls} active URLs`);
+    res.json(response);
   } catch (error) {
+    logger.error('Error in /api/analytics/summary:', error);
     next(error);
   }
 });
