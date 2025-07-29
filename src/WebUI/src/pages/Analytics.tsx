@@ -356,7 +356,7 @@ const Analytics = () => {
             <TabsTrigger value="url" disabled={!selectedShortCode}>URL Details</TabsTrigger>
           </TabsList>
 
-          {isLoading ? (
+        {isLoading ? (
             <div className="flex justify-center items-center h-60">
               <Loader2 className="h-10 w-10 animate-spin text-primary" />
             </div>

@@ -231,101 +231,110 @@ export const urlAPI = {
 
 // Analytics API
 export const analyticsAPI = {
-  getOverview: async (period: string = 'week') => {
-    const response = await api.get(`/api/analytics/overview?period=${period}`);
-    return response.data;
-  },
-  
-  getUrlAnalytics: async (shortCode: string, period: string = 'month') => {
-    try {
-      const response = await api.get(`/api/analytics/urls/${shortCode}?period=${period}`);
-      // Adapt to the actual response structure
-      const data = response.data;
-      return {
-        shortCode: data.shortCode,
-        originalUrl: data.originalUrl || '',
-        clicks: data.totalClicks || 0,
-        uniqueVisitors: data.uniqueVisitors || 0,
-        createdAt: data.createdAt,
-        lastAccessedAt: data.lastClickAt,
-        referrers: Object.entries(data.refererStats || {}).map(([source, count]) => ({ 
-          source, count: count as number 
-        })),
-        browsers: Object.entries(data.browserStats || {}).map(([name, count]) => ({ 
-          name, count: count as number 
-        })) || [],
-        devices: Object.entries(data.deviceStats || {}).map(([type, count]) => ({ 
-          type, count: count as number 
-        })),
-        locations: Object.entries(data.countryStats || {}).map(([country, count]) => ({ 
-          country, count: count as number 
-        })),
-        clicksByDay: data.dailyClicks?.map((item: any) => ({
-          date: item.dayName || item.day.toString(),
-          clicks: item.count
-        })) || []
-      };
-    } catch (error) {
-      console.error('Error in getUrlAnalytics:', error);
-      throw error;
-    }
-  },
-  
-  getClicksTimeseries: async (params: {
-    shortCode?: string;
-    period?: string;
-    range?: string;
-  } = {}) => {
-    try {
-      const query = new URLSearchParams();
-      if (params.shortCode) query.append('shortCode', params.shortCode);
-      if (params.period) query.append('period', params.period);
-      if (params.range) query.append('range', params.range);
-      
-      const response = await api.get(`/api/analytics/clicks/timeseries?${query.toString()}`);
-      const data = response.data;
-      
-      // Adapt to the expected structure in the UI
-      if (data.timeSeries && Array.isArray(data.timeSeries)) {
-        const labels = data.timeSeries.map((item: any) => {
-          // Format timestamp into a readable date string
-          const date = new Date(item.timestamp);
-          return date.toLocaleDateString();
-        });
-        
-        const clicks = data.timeSeries.map((item: any) => item.clicks || 0);
-        const uniqueVisitors = data.timeSeries.map((item: any) => item.uniqueVisitors || 0);
-        
-        return { labels, clicks, uniqueVisitors };
-      }
-      
-      return { labels: [], clicks: [], uniqueVisitors: [] };
-    } catch (error) {
-      console.error('Error in getClicksTimeseries:', error);
-      throw error;
-    }
-  },
-  
   getSummary: async () => {
-    const response = await api.get('/api/analytics/summary');
+    const userJson = localStorage.getItem('user');
+    let userId;
+    if (userJson) {
+      try {
+        userId = JSON.parse(userJson).id;
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
+    
+    const response = await api.get(`/api/analytics/summary${userId ? `?userId=${userId}` : ''}`);
     return response.data;
   },
   
-  exportAnalytics: async (params: {
-    shortCode?: string;
-    startDate?: string;
-    endDate?: string;
-    format?: 'csv' | 'json' | 'xlsx';
-  } = {}) => {
-    const query = new URLSearchParams();
-    if (params.shortCode) query.append('shortCode', params.shortCode);
-    if (params.startDate) query.append('startDate', params.startDate);
-    if (params.endDate) query.append('endDate', params.endDate);
-    if (params.format) query.append('format', params.format);
+  getOverview: async (period = 'week') => {
+    const userJson = localStorage.getItem('user');
+    let userId;
+    if (userJson) {
+      try {
+        userId = JSON.parse(userJson).id;
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
     
-    const response = await api.get(`/api/analytics/export?${query.toString()}`, {
-      responseType: 'blob'
-    });
+    const response = await api.get(`/api/analytics/overview?period=${period}${userId ? `&userId=${userId}` : ''}`);
+    return response.data;
+  },
+  
+  getUrlAnalytics: async (shortCode: string) => {
+    const userJson = localStorage.getItem('user');
+    let userId;
+    if (userJson) {
+      try {
+        userId = JSON.parse(userJson).id;
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
+    
+    const response = await api.get(`/api/analytics/urls/${shortCode}${userId ? `?userId=${userId}` : ''}`);
+    
+    // Transform the response if needed to match frontend expectations
+    return {
+      shortCode: response.data.shortCode,
+      originalUrl: response.data.originalUrl,
+      totalClicks: response.data.totalClicks,
+      uniqueVisitors: response.data.uniqueVisitors,
+      clicksByCountry: response.data.clicksByCountry || [],
+      clicksByDevice: response.data.clicksByDevice || [],
+      clicksByReferrer: response.data.clicksByReferer || [],
+      clicksOverTime: response.data.clicksOverTime || []
+    };
+  },
+  
+  getClicksTimeseries: async (shortCode?: string, period = 'week') => {
+    const userJson = localStorage.getItem('user');
+    let userId;
+    if (userJson) {
+      try {
+        userId = JSON.parse(userJson).id;
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
+    
+    let url = `/api/analytics/clicks/timeseries?period=${period}`;
+    if (shortCode) {
+      url += `&shortCode=${shortCode}`;
+    }
+    if (userId) {
+      url += `&userId=${userId}`;
+    }
+    
+    const response = await api.get(url);
+    
+    // Transform if needed to match frontend expectations
+    return {
+      period: response.data.period,
+      data: response.data.data || []
+    };
+  },
+  
+  exportAnalytics: async (format = 'json', shortCode?: string) => {
+    const userJson = localStorage.getItem('user');
+    let userId;
+    if (userJson) {
+      try {
+        userId = JSON.parse(userJson).id;
+      } catch (e) {
+        console.error('Error parsing user from localStorage:', e);
+      }
+    }
+    
+    let url = `/api/analytics/export?format=${format}`;
+    if (shortCode) {
+      url += `&shortCode=${shortCode}`;
+    }
+    if (userId) {
+      url += `&userId=${userId}`;
+    }
+    
+    const response = await api.get(url, { responseType: 'blob' });
     return response.data;
   }
 };
