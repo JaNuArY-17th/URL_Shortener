@@ -6,7 +6,8 @@ import {
   BarChart3,
   Settings,
   User,
-  LogOut
+  LogOut,
+  History
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +49,17 @@ export function AuthenticatedHeader() {
             <Link to="/dashboard">
               <Link2 className="h-4 w-4" />
               Dashboard
+            </Link>
+          </Button>
+          <Button 
+            variant={isActive("/history") ? "default" : "ghost"} 
+            size="sm" 
+            className="gap-2"
+            asChild
+          >
+            <Link to="/history">
+              <History className="h-4 w-4" />
+              History
             </Link>
           </Button>
           <Button 

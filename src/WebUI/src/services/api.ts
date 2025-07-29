@@ -188,6 +188,17 @@ export const urlAPI = {
     return response.data;
   },
   
+  getTopUrls: async (limit = 5, userId?: string) => {
+    const query = new URLSearchParams();
+    query.append('sortBy', 'clicks');
+    query.append('sortOrder', 'desc');
+    query.append('limit', limit.toString());
+    if (userId) query.append('userId', userId);
+    
+    const response = await api.get(`/api/urls?${query.toString()}`);
+    return response.data;
+  },
+  
   getUrl: async (shortCode: string) => {
     const response = await api.get(`/api/urls/${shortCode}`);
     return response.data;

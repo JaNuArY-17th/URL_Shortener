@@ -17,7 +17,7 @@ const config = {
   rabbitmq: {
     uri: process.env.RABBITMQ_URI || 'amqp://localhost:5672',
     exchanges: {
-      urlEvents: 'url-events'
+      urlEvents: 'url-shortener-events'
     },
     queues: {
       redirectEvents: 'analytics-redirect-events'

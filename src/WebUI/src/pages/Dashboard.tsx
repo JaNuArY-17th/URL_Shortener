@@ -2,32 +2,35 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import {
+  Link2,
+  ExternalLink,
+  Copy,
+  Trash,
+  Settings,
+  Loader2,
+  BarChart3,
+  TrendingUp,
+  Calendar,
+  Eye,
+  Check,
+  XCircle,
+  AlertCircle,
+  RefreshCcw,
+  ArrowUp,
+  History,
+  Tag as TagIcon
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { urlAPI, analyticsAPI, getSocket } from "@/services/api";
 import { AuthenticatedHeader } from "@/components/AuthenticatedHeader";
-import {
-  Link2,
-  Copy,
-  ExternalLink,
-  Eye,
-  Calendar,
-  TrendingUp,
-  Plus,
-  BarChart3,
-  Settings,
-  User,
-  LogOut,
-  Loader2,
-  RefreshCw,
-  Clock,
-  Tag,
-  XCircle,
-  Check,
-  AlertCircle
-} from "lucide-react";
 
 interface ShortenedUrl {
   shortCode: string;
@@ -73,18 +76,22 @@ export default function Dashboard() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Add state for refreshing URLs
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   // Fetch data when component mounts or user changes
   useEffect(() => {
     if (user?.id) {
       fetchUrls();
       fetchAnalyticsSummary();
+      // Remove fetchTopUrls() call
     }
   }, [user]);
 
   // Set up socket listeners for URL click updates
   useEffect(() => {
     const socket = getSocket();
-
+    
     // Listen for redirect events (URL clicks)
     socket.on('url.redirect', (data) => {
       if (data && data.shortCode) {
@@ -93,8 +100,8 @@ export default function Dashboard() {
           return prevUrls.map(url => {
             if (url.shortCode === data.shortCode) {
               // Update click count and return updated URL
-              return {
-                ...url,
+              return { 
+                ...url, 
                 clicks: (url.clicks || 0) + 1,
                 // If details are loaded, update those too
                 details: url.details ? {
@@ -125,12 +132,14 @@ export default function Dashboard() {
     };
   }, []);
 
+  // Remove topUrls state and related functions
+  
   const fetchUrls = async () => {
     try {
       setIsLoadingUrls(true);
-      // Pass user ID to get only the current user's URLs
-      const response = await urlAPI.getUrls(1, 10, true, user?.id);
-
+      // Pass user ID to get only the current user's URLs, limit to 5 most recent
+      const response = await urlAPI.getUrls(1, 5, true, user?.id);
+      
       if (response?.data) {
         setShortenedUrls(response.data.map((url: any) => ({
           shortCode: url.shortCode,
@@ -141,8 +150,6 @@ export default function Dashboard() {
           uniqueVisitors: url.uniqueVisitors || 0,
           active: url.active
         })));
-      } else {
-        setShortenedUrls([]);
       }
     } catch (error) {
       console.error('Error fetching URLs:', error);
@@ -401,80 +408,142 @@ export default function Dashboard() {
     }
   };
 
+  // Function to refresh all URLs cache
+  const refreshAllUrls = async () => {
+    if (isRefreshing) return;
+    
+    setIsRefreshing(true);
+    
+    try {
+      // Refresh the cache for first few URLs
+      for (const url of shortenedUrls.slice(0, 5)) {
+        await urlAPI.refreshCache(url.shortCode);
+      }
+      
+      toast({
+        title: "Cache Refreshed",
+        description: "Your URL cache has been refreshed successfully",
+      });
+    } catch (error) {
+      console.error('Error refreshing cache:', error);
+      toast({
+        title: "Error",
+        description: "Failed to refresh URL cache",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <AuthenticatedHeader />
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="shadow-soft">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total URLs</p>
-                  {isLoadingStats ? (
-                    <div className="h-8 flex items-center">
-                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : (
-                    <p className="text-2xl font-bold">{stats.activeUrls}</p>
-                  )}
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-3xl font-bold mb-2">URL Dashboard</h1>
+        <p className="text-muted-foreground mb-8">
+          Manage and track your shortened URLs
+        </p>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <Card className="col-span-1 shadow-soft">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-semibold">Total Clicks</CardTitle>
+              <CardDescription>All time clicks on your URLs</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingStats ? (
+                <div className="h-12 flex items-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-                <div className="p-3 bg-gradient-primary rounded-full">
-                  <Link2 className="h-6 w-6 text-white" />
+              ) : (
+                <div className="flex items-baseline">
+                  <p className="text-3xl font-bold">{stats.totalClicks}</p>
+                  <div className="ml-2 text-sm text-muted-foreground">
+                    <span className="text-xs bg-primary/10 text-primary py-0.5 px-1 rounded">
+                      {stats.clicksToday} today
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
-          <Card className="shadow-soft">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Clicks</p>
-                  {isLoadingStats ? (
-                    <div className="h-8 flex items-center">
-                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                    </div>
-                  ) : (
-                    <p className="text-2xl font-bold">{stats.totalClicks}</p>
-                  )}
+          <Card className="col-span-1 shadow-soft">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-semibold">Active URLs</CardTitle>
+              <CardDescription>Currently active shortened URLs</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingStats ? (
+                <div className="h-12 flex items-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-                <div className="p-3 bg-gradient-primary rounded-full">
-                  <TrendingUp className="h-6 w-6 text-white" />
+              ) : (
+                <div className="flex items-baseline">
+                  <p className="text-3xl font-bold">{stats.activeUrls}</p>
                 </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
-          <Card className="shadow-soft">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Clicks Today</p>
-                  {isLoadingStats ? (
-                    <div className="h-8 flex items-center">
-                      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                    </div>
+          <Card className="col-span-1 shadow-soft">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg font-semibold">Quick Actions</CardTitle>
+              <CardDescription>Common URL management tasks</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 "
+                  onClick={() => refreshAllUrls()}
+                  disabled={isRefreshing}
+                >
+                  {isRefreshing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (
-                    <p className="text-2xl font-bold">{stats.clicksToday}</p>
+                    <RefreshCcw className="h-4 w-4" />
                   )}
-                </div>
-                <div className="p-3 bg-gradient-primary rounded-full">
-                  <BarChart3 className="h-6 w-6 text-white" />
-                </div>
+                  Refresh Cache
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2 "
+                  asChild
+                >
+                  <Link to="/analytics">
+                    <BarChart3 className="h-4 w-4" />
+                    View Analytics
+                  </Link>
+                </Button>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* URL Shortener */}
-        <Card className="shadow-soft border-0 bg-gradient-secondary mb-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-semibold">Your URLs</h2>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          >
+            <ArrowUp className="h-4 w-4" />
+            Back to Top
+          </Button>
+        </div>
+
+        {/* Create New URL Section */}
+        <Card className="mb-8 shadow-soft">
           <CardHeader>
             <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              <Plus className="h-6 w-6 text-primary" />
+              <Link2 className="h-6 w-6 text-primary" />
               Create New Short URL
             </CardTitle>
             <CardDescription>
@@ -539,28 +608,21 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* URLs List */}
-        <div className="space-y-4">
+        {/* URL List */}
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Your Shortened URLs</h2>
-            <div className="flex items-center gap-2">
-              {!isLoadingUrls && (
-                <Badge variant="secondary" className="text-sm">
-                  {shortenedUrls.length} {shortenedUrls.length === 1 ? 'URL' : 'URLs'}
-                </Badge>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                asChild
-              >
-                <Link to="/analytics">
-                  <BarChart3 className="h-4 w-4" />
-                  View Analytics
-                </Link>
-              </Button>
-            </div>
+            <h3 className="text-xl font-semibold">Your Recent URLs</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="gap-2"
+            >
+              <Link to="/history">
+                <History className="h-4 w-4" />
+                View All URLs
+              </Link>
+            </Button>
           </div>
 
           {isLoadingUrls ? (
@@ -742,7 +804,7 @@ export default function Dashboard() {
                                     className="gap-1 text-xs flex-1"
                                     onClick={() => handleRefreshCache(item.shortCode)}
                                   >
-                                    <RefreshCw className="h-3 w-3" />
+                                    <RefreshCcw className="h-3 w-3" />
                                     Refresh Cache
                                   </Button>
 
@@ -782,7 +844,7 @@ export default function Dashboard() {
 
                                   <div>
                                     <label className="text-xs text-muted-foreground flex items-center gap-1">
-                                      <Tag className="h-3 w-3" />
+                                      <TagIcon className="h-3 w-3" />
                                       Tags (comma separated)
                                     </label>
                                     <Input
@@ -849,7 +911,7 @@ export default function Dashboard() {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 } 
