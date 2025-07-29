@@ -62,10 +62,7 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      };
+      config.headers.set('Authorization', `Bearer ${token}`);
     }
     return config;
   },
@@ -232,47 +229,71 @@ export const urlAPI = {
 // Analytics API
 export const analyticsAPI = {
   getSummary: async () => {
+    let userId = null;
     const userJson = localStorage.getItem('user');
-    let userId;
+    
     if (userJson) {
       try {
-        userId = JSON.parse(userJson).id;
+        const user = JSON.parse(userJson);
+        userId = user.id;
+        console.log('Found user ID for analytics summary:', userId);
       } catch (e) {
         console.error('Error parsing user from localStorage:', e);
       }
     }
     
-    const response = await api.get(`/api/analytics/summary${userId ? `?userId=${userId}` : ''}`);
+    // Only add userId if we actually have one
+    const queryString = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+    console.log('Analytics summary query string:', queryString);
+    
+    const response = await api.get(`/api/analytics/summary${queryString}`);
     return response.data;
   },
   
   getOverview: async (period = 'week') => {
+    let userId = null;
     const userJson = localStorage.getItem('user');
-    let userId;
+    
     if (userJson) {
       try {
-        userId = JSON.parse(userJson).id;
+        const user = JSON.parse(userJson);
+        userId = user.id;
+        console.log('Found user ID for analytics overview:', userId);
       } catch (e) {
         console.error('Error parsing user from localStorage:', e);
       }
     }
     
-    const response = await api.get(`/api/analytics/overview?period=${period}${userId ? `&userId=${userId}` : ''}`);
+    // Build query string with period and userId if available
+    let queryString = `?period=${period}`;
+    if (userId) {
+      queryString += `&userId=${encodeURIComponent(userId)}`;
+    }
+    console.log('Analytics overview query string:', queryString);
+    
+    const response = await api.get(`/api/analytics/overview${queryString}`);
     return response.data;
   },
   
   getUrlAnalytics: async (shortCode: string) => {
+    let userId = null;
     const userJson = localStorage.getItem('user');
-    let userId;
+    
     if (userJson) {
       try {
-        userId = JSON.parse(userJson).id;
+        const user = JSON.parse(userJson);
+        userId = user.id;
+        console.log('Found user ID for URL analytics:', userId);
       } catch (e) {
         console.error('Error parsing user from localStorage:', e);
       }
     }
     
-    const response = await api.get(`/api/analytics/urls/${shortCode}${userId ? `?userId=${userId}` : ''}`);
+    // Only add userId if we actually have one
+    const queryString = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+    console.log('URL analytics query string:', queryString);
+    
+    const response = await api.get(`/api/analytics/urls/${shortCode}${queryString}`);
     
     // Transform the response if needed to match frontend expectations
     return {
@@ -288,25 +309,30 @@ export const analyticsAPI = {
   },
   
   getClicksTimeseries: async (shortCode?: string, period = 'week') => {
+    let userId = null;
     const userJson = localStorage.getItem('user');
-    let userId;
+    
     if (userJson) {
       try {
-        userId = JSON.parse(userJson).id;
+        const user = JSON.parse(userJson);
+        userId = user.id;
+        console.log('Found user ID for timeseries:', userId);
       } catch (e) {
         console.error('Error parsing user from localStorage:', e);
       }
     }
     
-    let url = `/api/analytics/clicks/timeseries?period=${period}`;
+    // Build query string
+    let queryString = `?period=${period}`;
     if (shortCode) {
-      url += `&shortCode=${shortCode}`;
+      queryString += `&shortCode=${shortCode}`;
     }
     if (userId) {
-      url += `&userId=${userId}`;
+      queryString += `&userId=${encodeURIComponent(userId)}`;
     }
+    console.log('Timeseries query string:', queryString);
     
-    const response = await api.get(url);
+    const response = await api.get(`/api/analytics/clicks/timeseries${queryString}`);
     
     // Transform if needed to match frontend expectations
     return {
@@ -316,25 +342,30 @@ export const analyticsAPI = {
   },
   
   exportAnalytics: async (format = 'json', shortCode?: string) => {
+    let userId = null;
     const userJson = localStorage.getItem('user');
-    let userId;
+    
     if (userJson) {
       try {
-        userId = JSON.parse(userJson).id;
+        const user = JSON.parse(userJson);
+        userId = user.id;
+        console.log('Found user ID for analytics export:', userId);
       } catch (e) {
         console.error('Error parsing user from localStorage:', e);
       }
     }
     
-    let url = `/api/analytics/export?format=${format}`;
+    // Build query string
+    let queryString = `?format=${format}`;
     if (shortCode) {
-      url += `&shortCode=${shortCode}`;
+      queryString += `&shortCode=${shortCode}`;
     }
     if (userId) {
-      url += `&userId=${userId}`;
+      queryString += `&userId=${encodeURIComponent(userId)}`;
     }
+    console.log('Export analytics query string:', queryString);
     
-    const response = await api.get(url, { responseType: 'blob' });
+    const response = await api.get(`/api/analytics/export${queryString}`, { responseType: 'blob' });
     return response.data;
   }
 };

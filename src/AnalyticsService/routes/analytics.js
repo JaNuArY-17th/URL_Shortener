@@ -86,20 +86,24 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
     // Check for userId from query parameters or authenticated user
     const userId = req.query.userId || req.user?.id;
     
+    logger.debug(`Overview request - Period: ${period}, User ID: ${userId || 'none'}`);
+    
     if (userId) {
       // Add filter for URL stats by userId
-      urlStatQuery.userId = userId;
+      // Try both string and ObjectId comparisons to handle different storage formats
+      logger.debug(`Filtering overview for user ${userId}`);
       
       // Get URL shortCodes for this user to filter click events
-      const userUrlStats = await UrlStat.find(urlStatQuery).select('shortCode');
-      const userShortCodes = userUrlStats.map(stat => stat.shortCode);
+      const userUrlStats = await UrlStat.find({ userId: userId }).select('shortCode');
+      logger.debug(`Found ${userUrlStats.length} URLs for user ${userId}`);
       
-      if (userShortCodes.length > 0) {
+      if (userUrlStats.length > 0) {
+        const userShortCodes = userUrlStats.map(stat => stat.shortCode);
         // Filter click events by user's URLs
         query.shortCode = { $in: userShortCodes };
+        urlStatQuery.userId = userId;
         
-        // Log for debugging
-        logger.debug(`Filtering overview for user ${userId} with ${userShortCodes.length} URLs`);
+        logger.debug(`Filtering overview for ${userShortCodes.length} URLs: ${userShortCodes.join(', ')}`);
       } else {
         // If user has no URLs, return empty results
         logger.debug(`User ${userId} has no URLs, returning empty overview`);
@@ -119,16 +123,21 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
     
     // Get total clicks
     const totalClicks = await ClickEvent.countDocuments(query);
+    logger.debug(`Total clicks: ${totalClicks}`);
     
     // Get unique visitors
     const uniqueVisitors = await ClickEvent.distinct('visitorHash', query);
+    logger.debug(`Unique visitors: ${uniqueVisitors.length}`);
     
     // Get top URLs (filtered by user if userId provided)
-    const topUrls = await UrlStat.find(urlStatQuery)
+    let topUrlsQuery = userId ? { userId: userId } : {};
+    const topUrls = await UrlStat.find(topUrlsQuery)
       .sort({ totalClicks: -1 })
       .limit(10)
       .select('shortCode originalUrl totalClicks uniqueVisitors userId');
-      
+    
+    logger.debug(`Top URLs: ${topUrls.length} found`);
+    
     // Get clicks by country
     const clicksByCountry = await ClickEvent.aggregate([
       { $match: query },
@@ -236,7 +245,10 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
     // Check for userId from query parameters or authenticated user
     const userId = req.query.userId || req.user?.id;
     
+    logger.debug(`Summary request - User ID: ${userId || 'none'}`);
+    
     if (userId) {
+      // Try both string and ObjectId comparisons to handle different storage formats
       urlStatQuery.userId = userId;
       logger.debug(`Filtering summary for user ${userId}`);
     } else {
@@ -248,6 +260,7 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
       ...urlStatQuery,
       active: true 
     });
+    logger.debug(`Active URLs count: ${activeUrls}`);
     
     // Get total clicks and today's clicks
     let totalClicks = 0;
@@ -256,11 +269,20 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
     
     // Get aggregate stats from URL stats
     const urlStats = await UrlStat.find(urlStatQuery);
+    logger.debug(`Found ${urlStats.length} URLs matching query: ${JSON.stringify(urlStatQuery)}`);
+    
+    // Debug info - log each URL found
+    urlStats.forEach(stat => {
+      logger.debug(`URL: ${stat.shortCode}, userId: ${stat.userId}, clicks: ${stat.totalClicks}`);
+    });
     
     if (urlStats.length > 0) {
       // Sum up clicks from all matching URLs
       totalClicks = urlStats.reduce((sum, stat) => sum + (stat.totalClicks || 0), 0);
       uniqueVisitors = urlStats.reduce((sum, stat) => sum + (stat.uniqueVisitors || 0), 0);
+      
+      logger.debug(`Total clicks from URL stats: ${totalClicks}`);
+      logger.debug(`Unique visitors from URL stats: ${uniqueVisitors}`);
       
       // For today's clicks, we need to query the click events
       const startOfDay = new Date();
@@ -275,6 +297,7 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
           shortCode: { $in: shortCodes },
           timestamp: { $gte: startOfDay }
         });
+        logger.debug(`Today's clicks: ${clicksToday}`);
       }
     } else {
       logger.debug(`No URLs found for ${userId ? 'user ' + userId : 'global'} summary`);
