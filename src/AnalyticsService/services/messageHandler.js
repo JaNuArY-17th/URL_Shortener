@@ -186,6 +186,20 @@ class MessageHandler {
       logger.debug(`Saved click event for ${shortCode}`);
       
       // Update URL statistics
+      // Ensure UrlStat has userId & originalUrl on initial insert
+      await UrlStat.updateOne(
+        { shortCode },
+        {
+          $setOnInsert: {
+            userId: userId || null,
+            originalUrl: originalUrl || '',
+            urlCreatedAt: new Date(timestamp)
+          }
+        },
+        { upsert: true }
+      );
+
+      // Update other statistics for the URL
       await UrlStat.recordClick(shortCode, {
         deviceType,
         countryCode,
