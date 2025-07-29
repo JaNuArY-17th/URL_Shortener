@@ -25,8 +25,9 @@ export function UrlShortener() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingUrls, setIsLoadingUrls] = useState(false);
   const [shortenedUrls, setShortenedUrls] = useState<ShortenedUrl[]>([]);
+  const [expiresAt, setExpiresAt] = useState<string>("");
   const { toast } = useToast();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -39,7 +40,7 @@ export function UrlShortener() {
 
     try {
       setIsLoadingUrls(true);
-      const response = await urlAPI.getUrls(1, 5, true);
+      const response = await urlAPI.getUrls(1, 5, true, user?.id);
       if (response?.data) {
         setShortenedUrls(response.data.map((url: any) => ({
           shortCode: url.shortCode,
@@ -95,7 +96,11 @@ export function UrlShortener() {
 
     try {
       // Call API to shorten URL
-      const response = await urlAPI.shorten(url, customAlias || undefined);
+      const response = await urlAPI.shorten({
+        originalUrl: url,
+        customAlias: customAlias || undefined,
+        expiresAt: expiresAt || undefined,
+      });
       
       // Add new URL to the list
       const newUrl: ShortenedUrl = {
@@ -111,6 +116,7 @@ export function UrlShortener() {
       setShortenedUrls(prev => [newUrl, ...prev]);
       setUrl("");
       setCustomAlias("");
+      setExpiresAt("");
       setShowCustomAlias(false);
 
       toast({
@@ -177,6 +183,7 @@ export function UrlShortener() {
             />
             
             {showCustomAlias && (
+              <>
               <div className="flex gap-2 items-center">
                 <span className="text-sm text-muted-foreground whitespace-nowrap">Custom alias:</span>
                 <Input 
@@ -186,6 +193,16 @@ export function UrlShortener() {
                   className="flex-1"
                 />
               </div>
+              <div className="flex gap-2 items-center">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">Expires at:</span>
+                <Input
+                  type="datetime-local"
+                  value={expiresAt}
+                  onChange={(e) => setExpiresAt(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+              </>
             )}
 
             <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
@@ -196,7 +213,7 @@ export function UrlShortener() {
                 onClick={() => setShowCustomAlias(!showCustomAlias)}
                 className="sm:ml-auto"
               >
-                {showCustomAlias ? "Hide custom options" : "Custom options"}
+                {showCustomAlias ? "Hide advanced options" : "Advanced options"}
               </Button>
               
               <Button 

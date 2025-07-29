@@ -121,9 +121,11 @@ const setupProxyRoutes = (app) => {
     false // Không yêu cầu auth (có thể bật lại nếu cần)
   ));
 
-  // URL Shortener Service Routes (giữ nguyên phía sau để tránh đè lên /api/urls)
-  app.use('/api/Urls', ...createProxyWithLogging(
+  // URL Shortener Service Routes (đổi sang /api/url-shortener để tránh xung đột)
+  app.use('/api/url-shortener', ...createProxyWithLogging(
     config.services.urlShorteners,
+    { '^/api/url-shortener': '/api/Urls' },
+    false
   ));
   
   // Redirect Service - Redirect Route
@@ -156,7 +158,7 @@ const setupProxyRoutes = (app) => {
   
   app.use('/redirect/api-docs', ...createProxyWithLogging(
     config.services.redirect,
-    { '^/redirect/api-docs': '/api-docs' },
+    { '^/urls/api-docs': '/api-docs' },
     false,
     true
   ));

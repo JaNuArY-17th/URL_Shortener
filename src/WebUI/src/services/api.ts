@@ -69,19 +69,22 @@ export const authAPI = {
 
 // URL API
 export const urlAPI = {
-  shorten: async (originalUrl: string, customAlias?: string) => {
-    const response = await api.post('/api/urls', { 
-      originalUrl,
-      customAlias: customAlias || undefined
-    });
+  shorten: async (payload: {
+    originalUrl: string;
+    customAlias?: string;
+    expiresAt?: string;
+    metadata?: Record<string, any>;
+  }) => {
+    const response = await api.post('/api/url-shortener', payload);
     return response.data;
   },
   
-  getUrls: async (page = 1, limit = 10, active?: boolean) => {
+  getUrls: async (page = 1, limit = 10, active?: boolean, userId?: string) => {
     const query = new URLSearchParams();
     query.append('page', page.toString());
     query.append('limit', limit.toString());
     if (active !== undefined) query.append('active', active.toString());
+    if (userId) query.append('userId', userId);
     
     const response = await api.get(`/api/urls?${query.toString()}`);
     return response.data;

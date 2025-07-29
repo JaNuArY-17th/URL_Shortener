@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Link2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Link2, Loader2 } from "lucide-react";
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -18,7 +18,7 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
-  const { register } = useAuth();
+  const { register, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,9 +201,14 @@ export default function Register() {
             <Button 
               type="submit" 
               className="w-full" 
-              variant="gradient"
+              variant="gradient" 
+              disabled={isLoading}
             >
-              Create Account
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Create Account"
+              )}
             </Button>
           </form>
 

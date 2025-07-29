@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Link2, BarChart3, Settings, User, LogOut } from "lucide-react";
+import { Link2, BarChart3, Settings, User, LogOut, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 
 export function Header() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
@@ -28,19 +28,25 @@ export function Header() {
         </div>
 
         <nav className="hidden md:flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="gap-2">
-            <Link2 className="h-4 w-4" />
-            Shorten
+          <Button variant="ghost" size="sm" className="gap-2" asChild>
+            <Link to="/dashboard">
+              <Link2 className="h-4 w-4" />
+              Shorten
+            </Link>
           </Button>
           {isAuthenticated && (
             <>
-              <Button variant="ghost" size="sm" className="gap-2">
-                <BarChart3 className="h-4 w-4" />
-                Analytics
+              <Button variant="ghost" size="sm" className="gap-2" asChild>
+                <Link to="/analytics">
+                  <BarChart3 className="h-4 w-4" />
+                  Analytics
+                </Link>
               </Button>
-              <Button variant="ghost" size="sm" className="gap-2">
-                <Settings className="h-4 w-4" />
-                Settings
+              <Button variant="ghost" size="sm" className="gap-2" asChild>
+                <Link to="/settings">
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </Link>
               </Button>
             </>
           )}
@@ -49,17 +55,24 @@ export function Header() {
         <div className="flex items-center gap-2">
           {isAuthenticated ? (
             <>
-              <Button variant="outline" size="sm" className="gap-2">
-                <User className="h-4 w-4" />
-                {user?.name}
+              <Button variant="outline" size="sm" className="gap-2" asChild>
+                <Link to="/profile">
+                  <User className="h-4 w-4" />
+                  {user?.name}
+                </Link>
               </Button>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 className="gap-2"
                 onClick={handleLogout}
+                disabled={isLoading}
               >
-                <LogOut className="h-4 w-4" />
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <LogOut className="h-4 w-4" />
+                )}
               </Button>
             </>
           ) : (

@@ -107,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
+    setIsLoading(true);
     try {
       await authAPI.logout();
     } catch (error) {
@@ -115,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      setIsLoading(false);
     }
   };
 

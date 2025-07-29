@@ -80,6 +80,11 @@ const { v4: uuidv4 } = require('uuid');
  *         schema:
  *           type: boolean
  *         description: Filter by active status
+ *       - in: query
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         description: Filter by owner user ID
  *     responses:
  *       200:
  *         description: A list of URLs
@@ -148,6 +153,9 @@ router.get('/', async (req, res, next) => {
     const filter = {};
     if (req.query.active !== undefined) {
       filter.active = req.query.active === 'true';
+    }
+    if (req.query.userId) {
+      filter.userId = req.query.userId;
     }
     
     const urls = await Url.find(filter)
