@@ -246,8 +246,14 @@ export const analyticsAPI = {
     const queryString = userId ? `?userId=${encodeURIComponent(userId)}` : '';
     console.log('Analytics summary query string:', queryString);
     
-    const response = await api.get(`/api/analytics/summary${queryString}`);
-    return response.data;
+    try {
+      const response = await api.get(`/api/analytics/summary${queryString}`);
+      console.log('Analytics summary response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching analytics summary:', error);
+      throw error;
+    }
   },
   
   getOverview: async (period = 'week') => {
@@ -271,11 +277,17 @@ export const analyticsAPI = {
     }
     console.log('Analytics overview query string:', queryString);
     
-    const response = await api.get(`/api/analytics/overview${queryString}`);
-    return response.data;
+    try {
+      const response = await api.get(`/api/analytics/overview${queryString}`);
+      console.log('Analytics overview response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching analytics overview:', error);
+      throw error;
+    }
   },
   
-  getUrlAnalytics: async (shortCode: string) => {
+  getUrlAnalytics: async (shortCode: string, period = 'week') => {
     let userId = null;
     const userJson = localStorage.getItem('user');
     
@@ -290,22 +302,46 @@ export const analyticsAPI = {
     }
     
     // Only add userId if we actually have one
-    const queryString = userId ? `?userId=${encodeURIComponent(userId)}` : '';
+    const queryString = userId ? `?userId=${encodeURIComponent(userId)}&period=${period}` : `?period=${period}`;
     console.log('URL analytics query string:', queryString);
     
-    const response = await api.get(`/api/analytics/urls/${shortCode}${queryString}`);
-    
-    // Transform the response if needed to match frontend expectations
-    return {
-      shortCode: response.data.shortCode,
-      originalUrl: response.data.originalUrl,
-      totalClicks: response.data.totalClicks,
-      uniqueVisitors: response.data.uniqueVisitors,
-      clicksByCountry: response.data.clicksByCountry || [],
-      clicksByDevice: response.data.clicksByDevice || [],
-      clicksByReferrer: response.data.clicksByReferer || [],
-      clicksOverTime: response.data.clicksOverTime || []
-    };
+    try {
+      const response = await api.get(`/api/analytics/urls/${shortCode}${queryString}`);
+      console.log("Raw URL analytics response:", response.data);
+      
+      // Transform the response data to match the structure expected by the UI
+      return {
+        shortCode: response.data.shortCode,
+        originalUrl: response.data.originalUrl,
+        clicks: response.data.totalClicks,
+        uniqueVisitors: response.data.uniqueVisitors,
+        createdAt: response.data.urlCreatedAt || response.data.createdAt || new Date().toISOString(),
+        lastAccessedAt: response.data.lastClickAt || null,
+        referrers: (response.data.clicksByReferer || []).map(item => ({
+          source: item.referer,
+          count: item.count
+        })),
+        locations: (response.data.clicksByCountry || []).map(item => ({
+          country: item.country,
+          count: item.count
+        })),
+        browsers: (response.data.clicksByBrowser || []).map(item => ({
+          name: item.browser,
+          count: item.count
+        })),
+        devices: (response.data.clicksByDevice || []).map(item => ({
+          type: item.device,
+          count: item.count
+        })),
+        clicksByDay: (response.data.clicksOverTime || []).map(item => ({
+          date: item.timestamp,
+          clicks: item.count
+        }))
+      };
+    } catch (error) {
+      console.error('Error fetching URL analytics:', error);
+      throw error;
+    }
   },
   
   getClicksTimeseries: async (shortCode?: string, period = 'week') => {
@@ -325,20 +361,41 @@ export const analyticsAPI = {
     // Build query string
     let queryString = `?period=${period}`;
     if (shortCode) {
-      queryString += `&shortCode=${shortCode}`;
+      queryString += `&shortCode=${encodeURIComponent(shortCode)}`;
     }
     if (userId) {
       queryString += `&userId=${encodeURIComponent(userId)}`;
     }
     console.log('Timeseries query string:', queryString);
     
-    const response = await api.get(`/api/analytics/clicks/timeseries${queryString}`);
-    
-    // Transform if needed to match frontend expectations
-    return {
-      period: response.data.period,
-      data: response.data.data || []
-    };
+    try {
+      const response = await api.get(`/api/analytics/clicks/timeseries${queryString}`);
+      console.log('Timeseries response:', response.data);
+      
+      // Transform the data into the format expected by the UI
+      const labels = [];
+      const clicks = [];
+      const uniqueVisitors = [];
+      
+      if (response.data && response.data.data) {
+        response.data.data.forEach(item => {
+          const date = new Date(item.timestamp);
+          labels.push(date.toLocaleDateString());
+          clicks.push(item.count);
+          uniqueVisitors.push(item.uniqueVisitors || 0);
+        });
+      }
+      
+      return {
+        period: response.data.period,
+        labels,
+        clicks,
+        uniqueVisitors
+      };
+    } catch (error) {
+      console.error('Error fetching click timeseries:', error);
+      throw error;
+    }
   },
   
   exportAnalytics: async (format = 'json', shortCode?: string) => {
@@ -358,15 +415,20 @@ export const analyticsAPI = {
     // Build query string
     let queryString = `?format=${format}`;
     if (shortCode) {
-      queryString += `&shortCode=${shortCode}`;
+      queryString += `&shortCode=${encodeURIComponent(shortCode)}`;
     }
     if (userId) {
       queryString += `&userId=${encodeURIComponent(userId)}`;
     }
     console.log('Export analytics query string:', queryString);
     
-    const response = await api.get(`/api/analytics/export${queryString}`, { responseType: 'blob' });
-    return response.data;
+    try {
+      const response = await api.get(`/api/analytics/export${queryString}`, { responseType: 'blob' });
+      return response.data;
+    } catch (error) {
+      console.error('Error exporting analytics:', error);
+      throw error;
+    }
   }
 };
 

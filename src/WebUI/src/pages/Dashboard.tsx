@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { urlAPI, analyticsAPI, getSocket } from "@/services/api";
+import { urlAPI, analyticsAPI, getSocket, connectSocket } from "@/services/api";
 import { AuthenticatedHeader } from "@/components/AuthenticatedHeader";
 
 interface ShortenedUrl {
@@ -82,18 +82,43 @@ export default function Dashboard() {
   // Fetch data when component mounts or user changes
   useEffect(() => {
     if (user?.id) {
+      // Console log to track user ID for debugging
+      console.log("Fetching data for user:", user.id);
+      
       fetchUrls();
       fetchAnalyticsSummary();
-      // Remove fetchTopUrls() call
+      
+      // Set up socket connection when user is available
+      const socket = getSocket();
+      
+      // Check if socket is connected
+      if (!socket.connected) {
+        const token = localStorage.getItem('token');
+        if (token) {
+          console.log("Connecting socket in Dashboard useEffect");
+          connectSocket(token);
+        }
+      }
     }
   }, [user]);
 
-  // Set up socket listeners for URL click updates
+  // Separate useEffect for WebSocket setup to avoid running on every user change
   useEffect(() => {
     const socket = getSocket();
     
+    // Check if socket is connected
+    if (!socket.connected) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        console.log("Connecting socket in WebSocket useEffect");
+        connectSocket(token);
+      }
+    }
+    
     // Listen for redirect events (URL clicks)
     socket.on('url.redirect', (data) => {
+      console.log('Received URL click event:', data);
+      
       if (data && data.shortCode) {
         // Update the click count for the matching URL
         setShortenedUrls(prevUrls => {
@@ -129,6 +154,7 @@ export default function Dashboard() {
     return () => {
       // Clean up listeners on unmount
       socket.off('url.redirect');
+      // Note: Don't disconnect the socket here as it might be used by other components
     };
   }, []);
 
@@ -166,9 +192,17 @@ export default function Dashboard() {
   const fetchAnalyticsSummary = async () => {
     try {
       setIsLoadingStats(true);
+      console.log("Fetching analytics summary for user:", user?.id);
+      
+      // Log localStorage user and token for debugging
+      console.log("localStorage user:", localStorage.getItem('user'));
+      console.log("localStorage token exists:", !!localStorage.getItem('token'));
+      
       const response = await analyticsAPI.getSummary();
+      console.log("Analytics summary response:", response);
 
       if (response) {
+        // Store the stats with defaults to prevent undefined values
         setStats({
           totalClicks: response.totalClicks || 0,
           clicksToday: response.clicksToday || 0,
@@ -177,7 +211,12 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Error fetching analytics summary:', error);
-      // Don't show error toast for analytics to avoid overwhelming the user
+      // Set default values on error to avoid undefined
+      setStats({
+        totalClicks: 0,
+        clicksToday: 0,
+        activeUrls: 0
+      });
     } finally {
       setIsLoadingStats(false);
     }

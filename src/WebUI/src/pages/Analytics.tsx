@@ -37,6 +37,7 @@ interface AnalyticsSummary {
 }
 
 interface TimeseriesData {
+  period: string;
   labels: string[];
   clicks: number[];
   uniqueVisitors: number[];
@@ -99,21 +100,26 @@ const Analytics = () => {
       // Fetch summary
       const summaryData = await analyticsAPI.getSummary();
       setSummary(summaryData);
+      console.log("Summary data:", summaryData);
 
       // Fetch overview data with period filter
       const overviewData = await analyticsAPI.getOverview(filters.period);
       setOverview(overviewData);
+      console.log("Overview data:", overviewData);
 
       // Fetch timeseries data
       try {
-        const timeseriesData = await analyticsAPI.getClicksTimeseries({
-          period: filters.period,
-          shortCode: selectedShortCode
-        });
+        const timeseriesData = await analyticsAPI.getClicksTimeseries(selectedShortCode, filters.period);
         setTimeseries(timeseriesData);
         console.log("Timeseries data:", timeseriesData);
       } catch (error) {
         console.error("Failed to fetch timeseries data", error);
+        setTimeseries({
+          period: filters.period,
+          labels: [],
+          clicks: [],
+          uniqueVisitors: []
+        });
       }
 
       // If a shortCode is selected, fetch detailed analytics for that URL
@@ -129,6 +135,11 @@ const Analytics = () => {
           }
         } catch (error) {
           console.error("Failed to fetch URL analytics", error);
+          toast({
+            title: "Error",
+            description: `Failed to load analytics data for /${selectedShortCode}`,
+            variant: "destructive"
+          });
         }
       }
     } catch (error) {
@@ -183,12 +194,7 @@ const Analytics = () => {
   // Function to export analytics data
   const handleExportAnalytics = async (format: 'csv' | 'json' | 'xlsx') => {
     try {
-      const blob = await analyticsAPI.exportAnalytics({
-        shortCode: selectedShortCode,
-        startDate: filters.startDate,
-        endDate: filters.endDate,
-        format
-      });
+      const blob = await analyticsAPI.exportAnalytics(format, selectedShortCode);
 
       // Create a download link
       const url = window.URL.createObjectURL(blob);
@@ -231,44 +237,109 @@ const Analytics = () => {
 
     // Listen for redirect events (URL clicks)
     socket.on('url.redirect', (data) => {
+      console.log('Received URL click event:', data);
+      
       if (data && data.shortCode) {
         // Update the overview stats
         setOverview(prev => {
           if (!prev) return prev;
 
-          const updatedSummary = {
-            ...prev.summary,
-            totalClicks: prev.summary.totalClicks + 1
+          // Update total clicks
+          const updatedOverview = {
+            ...prev,
+            totalClicks: (prev.totalClicks || 0) + 1
           };
+          
+          // If we have topUrls, update the click count for this URL
+          if (prev.topUrls && Array.isArray(prev.topUrls)) {
+            updatedOverview.topUrls = prev.topUrls.map(url => {
+              if (url.shortCode === data.shortCode) {
+                return {
+                  ...url,
+                  clicks: (url.clicks || 0) + 1
+                };
+              }
+              return url;
+            });
+          }
 
-          // Update top URLs if this URL is in the list
-          const updatedTopUrls = prev.topUrls.map(url => {
-            if (url.shortCode === data.shortCode) {
-              return {
-                ...url,
-                clicks: url.clicks + 1,
-                lastAccessedAt: new Date().toISOString()
-              };
-            }
-            return url;
-          });
+          console.log('Updated overview data:', updatedOverview);
+          return updatedOverview;
+        });
 
+        // Update summary stats
+        setSummary(prev => {
+          if (!prev) return prev;
           return {
             ...prev,
-            summary: updatedSummary,
-            topUrls: updatedTopUrls
+            totalClicks: (prev.totalClicks || 0) + 1,
+            clicksToday: (prev.clicksToday || 0) + 1
           };
         });
+
+        // Update timeseries data if it matches the clicked URL
+        if (!selectedShortCode || selectedShortCode === data.shortCode) {
+          setTimeseries(prev => {
+            if (!prev || !prev.labels || !prev.clicks) return prev;
+            
+            const today = new Date().toLocaleDateString();
+            const todayIndex = prev.labels.indexOf(today);
+            
+            if (todayIndex >= 0) {
+              // Today exists in the labels, update the click count
+              const updatedClicks = [...prev.clicks];
+              updatedClicks[todayIndex] = (updatedClicks[todayIndex] || 0) + 1;
+              
+              return {
+                ...prev,
+                clicks: updatedClicks
+              };
+            } else {
+              // Today doesn't exist in the labels, add it
+              return {
+                ...prev,
+                labels: [...prev.labels, today],
+                clicks: [...prev.clicks, 1],
+                uniqueVisitors: [...prev.uniqueVisitors, 0]
+              };
+            }
+          });
+        }
 
         // Update specific URL details if currently viewing that URL
         if (selectedShortCode && selectedShortCode === data.shortCode) {
           setUrlAnalytics(prev => {
             if (!prev) return prev;
-            return {
+            
+            const updatedAnalytics = {
               ...prev,
               clicks: (prev.clicks || 0) + 1,
               lastAccessedAt: new Date().toISOString()
             };
+
+            // Update clicksByDay
+            const today = new Date().toISOString().split('T')[0];
+            const todayEntry = prev.clicksByDay?.find(day => day.date.startsWith(today));
+            
+            if (todayEntry) {
+              updatedAnalytics.clicksByDay = prev.clicksByDay.map(day => {
+                if (day.date.startsWith(today)) {
+                  return {
+                    ...day,
+                    clicks: day.clicks + 1
+                  };
+                }
+                return day;
+              });
+            } else if (prev.clicksByDay) {
+              updatedAnalytics.clicksByDay = [
+                ...prev.clicksByDay,
+                { date: new Date().toISOString(), clicks: 1 }
+              ];
+            }
+
+            console.log('Updated URL analytics:', updatedAnalytics);
+            return updatedAnalytics;
           });
         }
       }
@@ -515,8 +586,8 @@ const Analytics = () => {
                               {timeseries.labels.map((label, index) => (
                                 <tr key={index} className="border-b hover:bg-muted/30">
                                   <td className="p-2">{label}</td>
-                                  <td className="text-right p-2">{timeseries.clicks[index]}</td>
-                                  <td className="text-right p-2">{timeseries.uniqueVisitors[index]}</td>
+                                  <td className="text-right p-2">{timeseries.clicks[index] || 0}</td>
+                                  <td className="text-right p-2">{timeseries.uniqueVisitors[index] || 0}</td>
                                 </tr>
                               ))}
                             </tbody>

@@ -84,9 +84,12 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
     let urlStatQuery = {};
     
     // Check for userId from query parameters or authenticated user
-    const userId = req.query.userId || req.user?.id;
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'userId query parameter is required' });
+    }
     
-    logger.debug(`Overview request - Period: ${period}, User ID: ${userId || 'none'}`);
+    logger.debug(`Overview request - Period: ${period}, User ID: ${userId}`);
     
     if (userId) {
       // Add filter for URL stats by userId
@@ -237,15 +240,19 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
  *       500:
  *         description: Server error
  */
+// ENDPOINT /api/analytics/summary
 router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, next) => {
   try {
     // Base query for UrlStat
     let urlStatQuery = {};
     
     // Check for userId from query parameters or authenticated user
-    const userId = req.query.userId || req.user?.id;
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'userId query parameter is required' });
+    }
     
-    logger.debug(`Summary request - User ID: ${userId || 'none'}`);
+    logger.debug(`Summary request - User ID: ${userId || 'none'}, Query: ${JSON.stringify(req.query)}`);
     
     if (userId) {
       // Try both string and ObjectId comparisons to handle different storage formats
@@ -255,17 +262,18 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
       logger.debug('No user ID provided, returning global summary');
     }
     
+    // Initialize default values to ensure we always return something
+    let totalClicks = 0;
+    let clicksToday = 0;
+    let activeUrls = 0;
+    let uniqueVisitors = 0;
+    
     // Get active URLs count
-    const activeUrls = await UrlStat.countDocuments({ 
+    activeUrls = await UrlStat.countDocuments({ 
       ...urlStatQuery,
       active: true 
     });
     logger.debug(`Active URLs count: ${activeUrls}`);
-    
-    // Get total clicks and today's clicks
-    let totalClicks = 0;
-    let clicksToday = 0;
-    let uniqueVisitors = 0;
     
     // Get aggregate stats from URL stats
     const urlStats = await UrlStat.find(urlStatQuery);
@@ -273,7 +281,7 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
     
     // Debug info - log each URL found
     urlStats.forEach(stat => {
-      logger.debug(`URL: ${stat.shortCode}, userId: ${stat.userId}, clicks: ${stat.totalClicks}`);
+      logger.debug(`URL: ${stat.shortCode}, userId: ${stat.userId}, clicks: ${stat.totalClicks || 0}, uniqueVisitors: ${stat.uniqueVisitors || 0}`);
     });
     
     if (urlStats.length > 0) {
@@ -300,7 +308,7 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
         logger.debug(`Today's clicks: ${clicksToday}`);
       }
     } else {
-      logger.debug(`No URLs found for ${userId ? 'user ' + userId : 'global'} summary`);
+      logger.debug(`No URLs found for ${userId ? 'user ' + userId : 'global'} summary, returning zeros`);
     }
     
     // Get top referrers based on user's URLs
@@ -366,18 +374,26 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
       topReferrers: topReferrers.map(item => ({
         source: item._id || 'unknown',
         count: item.count
-      })),
+      })) || [],
       topLocations: topLocations.map(item => ({
         location: item._id || 'unknown',
         count: item.count
-      }))
+      })) || []
     };
     
-    logger.debug(`Summary data prepared: ${totalClicks} total clicks, ${activeUrls} active URLs`);
+    logger.debug(`Summary data prepared: ${JSON.stringify(response)}`);
     res.json(response);
   } catch (error) {
     logger.error('Error in /api/analytics/summary:', error);
-    next(error);
+    // Send a default response with zeros in case of error
+    res.status(500).json({
+      totalClicks: 0,
+      clicksToday: 0,
+      activeUrls: 0,
+      uniqueVisitors: 0,
+      topReferrers: [],
+      topLocations: []
+    });
   }
 });
 
@@ -417,32 +433,75 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
  *       500:
  *         description: Server error
  */
+// ENDPOINT /api/analytics/urls/:shortCode
 router.get('/urls/:shortCode', analyticsLimiter, authenticateOptional, async (req, res, next) => {
   try {
     const { shortCode } = req.params;
+    const period = req.query.period || 'week';
     
     // Check for userId from query parameters or authenticated user
     const userId = req.query.userId || req.user?.id;
+    
+    logger.debug(`URL analytics request - ShortCode: ${shortCode}, Period: ${period}, User ID: ${userId || 'none'}`);
     
     // Find URL stats for this shortCode
     const urlStat = await UrlStat.findOne({ shortCode });
     
     if (!urlStat) {
+      logger.warn(`URL stats not found for shortCode: ${shortCode}`);
       return res.status(404).json({ error: 'URL not found' });
     }
     
+    logger.debug(`Found URL stats: ${JSON.stringify({
+      shortCode: urlStat.shortCode,
+      userId: urlStat.userId,
+      totalClicks: urlStat.totalClicks,
+      createdAt: urlStat.createdAt
+    })}`);
+    
     // If userId is provided, check ownership
     if (userId && urlStat.userId && userId !== urlStat.userId.toString()) {
+      logger.warn(`User ${userId} tried to access analytics for URL ${shortCode} owned by ${urlStat.userId}`);
       return res.status(403).json({ error: 'You do not have permission to view analytics for this URL' });
     }
     
-    // Base query for events related to this URL
-    const query = { shortCode };
+    // Set date range filter based on period
+    const now = new Date();
+    let startDate;
     
-    // Get total clicks
+    switch (period) {
+      case 'day':
+        // Last 24 hours
+        startDate = new Date(now - 24 * 60 * 60 * 1000);
+        break;
+      case 'week':
+        // Last 7 days
+        startDate = new Date(now - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'month':
+        // Last 30 days
+        startDate = new Date(now - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case 'year':
+        // Last 365 days
+        startDate = new Date(now - 365 * 24 * 60 * 60 * 1000);
+        break;
+      case 'all':
+      default:
+        // All time, first record
+        startDate = new Date(0);
+    }
+    
+    // Base query for events related to this URL
+    const query = { 
+      shortCode,
+      timestamp: { $gte: startDate }
+    };
+    
+    // Get total clicks for the period
     const totalClicks = await ClickEvent.countDocuments(query);
     
-    // Get unique visitors
+    // Get unique visitors for the period
     const uniqueVisitors = await ClickEvent.distinct('visitorHash', query);
     
     // Get clicks by country
@@ -509,35 +568,30 @@ router.get('/urls/:shortCode', analyticsLimiter, authenticateOptional, async (re
       { $limit: 10 }
     ]);
     
-    // Get clicks over time (hourly for last 24 hours)
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    // Get clicks over time (daily for the selected period)
     const clicksOverTime = await ClickEvent.aggregate([
-      { 
-        $match: { 
-          ...query,
-          timestamp: { $gte: oneDayAgo } 
-        } 
-      },
+      { $match: query },
       {
         $group: {
           _id: {
             year: { $year: '$timestamp' },
             month: { $month: '$timestamp' },
-            day: { $dayOfMonth: '$timestamp' },
-            hour: { $hour: '$timestamp' }
+            day: { $dayOfMonth: '$timestamp' }
           },
           count: { $sum: 1 }
         }
       },
-      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1, '_id.hour': 1 } }
+      { $sort: { '_id.year': 1, '_id.month': 1, '_id.day': 1 } }
     ]);
     
-    // Format the data
+    // Format the data to match frontend expectations
     const formattedData = {
       shortCode,
       originalUrl: urlStat.originalUrl,
-      totalClicks,
+      totalClicks: totalClicks,
       uniqueVisitors: uniqueVisitors.length,
+      urlCreatedAt: urlStat.createdAt || urlStat.timestamps?.createdAt,
+      lastClickAt: urlStat.lastClickAt,
       clicksByCountry: clicksByCountry.map(item => ({
         country: item._id || 'unknown',
         count: item.count
@@ -558,18 +612,20 @@ router.get('/urls/:shortCode', analyticsLimiter, authenticateOptional, async (re
         referer: item._id || 'unknown',
         count: item.count
       })),
-      clicksOverTime: clicksOverTime.map(item => ({
-        timestamp: new Date(
+      clicksOverTime: clicksOverTime.map(item => {
+        const date = new Date(
           item._id.year,
           item._id.month - 1, // Month is 0-indexed in JS Date
-          item._id.day,
-          item._id.hour
-        ).toISOString(),
-        count: item.count
-      }))
+          item._id.day
+        );
+        return {
+          timestamp: date.toISOString(),
+          count: item.count
+        };
+      })
     };
     
-    logger.debug(`URL analytics prepared for ${shortCode}: ${totalClicks} total clicks`);
+    logger.debug(`URL analytics prepared for ${shortCode}: ${totalClicks} total clicks, ${uniqueVisitors.length} unique visitors`);
     res.json(formattedData);
   } catch (error) {
     logger.error(`Error in /api/analytics/urls/${req.params.shortCode}:`, error);
