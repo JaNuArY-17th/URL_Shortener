@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { urlAPI } from "@/services/api";
+import { urlAPI, getSocket, connectSocket } from "@/services/api";
 import { AuthenticatedHeader } from "@/components/AuthenticatedHeader";
 
 interface ShortenedUrl {
@@ -45,13 +45,7 @@ export default function History() {
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const { toast } = useToast();
   
-  useEffect(() => {
-    if (user?.id) {
-      fetchUrls();
-    }
-  }, [user]);
-  
-  const fetchUrls = async () => {
+  const fetchUrls = useCallback(async () => {
     try {
       setIsLoading(true);
       
@@ -59,7 +53,7 @@ export default function History() {
       const response = await urlAPI.getUrls(1, 100, undefined, user?.id);
       
       if (response?.data) {
-        setUrls(response.data.map((url: any) => ({
+        setUrls(response.data.map((url: ShortenedUrl) => ({
           shortCode: url.shortCode,
           originalUrl: url.originalUrl,
           shortUrl: `https://url-shortener-obve.onrender.com/${url.shortCode}`,
@@ -80,7 +74,53 @@ export default function History() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, toast]);
+  
+  useEffect(() => {
+    if (user?.id) {
+      fetchUrls();
+    }
+  }, [user, fetchUrls]);
+  
+  // Set up websocket connection for real-time updates
+  useEffect(() => {
+    const socket = getSocket();
+    
+    // Check if socket is connected
+    if (!socket.connected) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        console.log("Connecting socket in History component");
+        connectSocket(token);
+      }
+    }
+    
+    // Listen for redirect events (URL clicks)
+    socket.on('url.redirect', (data) => {
+      console.log('History: Received URL click event:', data);
+      
+      if (data && data.shortCode) {
+        // Update the click count for the matching URL
+        setUrls(prevUrls => {
+          return prevUrls.map(url => {
+            if (url.shortCode === data.shortCode) {
+              return { 
+                ...url, 
+                clicks: (url.clicks || 0) + 1 
+              };
+            }
+            return url;
+          });
+        });
+      }
+    });
+
+    return () => {
+      // Clean up listener on unmount
+      socket.off('url.redirect');
+      // Note: Don't disconnect the socket as it might be used by other components
+    };
+  }, []);
   
   const copyToClipboard = async (text: string) => {
     try {
