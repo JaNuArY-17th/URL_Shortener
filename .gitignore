@@ -22,4 +22,6 @@ dist/
 
 # Others
 .DS_Store
-Thumbs.db 
+Thumbs.db
+.agent.md
+acli.exe

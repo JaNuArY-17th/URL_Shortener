@@ -28,7 +28,9 @@ const config = {
     routingKeys: {
       urlCreated: 'url.created',
       urlRedirect: 'url.redirect',
-      userCreated: 'user.created'
+      userCreated: 'user.created',
+      passwordResetRequested: 'password.reset.requested',
+      passwordResetCompleted: 'password.reset.completed'
     }
   },
   cors: {
@@ -65,12 +67,16 @@ const config = {
     }
   },
   email: {
+    enabled: process.env.EMAIL_ENABLED !== 'false', // Enable by default
     service: process.env.EMAIL_SERVICE || 'gmail',
+    host: process.env.EMAIL_HOST,
+    port: parseInt(process.env.EMAIL_PORT) || 587,
+    secure: process.env.EMAIL_SECURE === 'true',
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+      user: process.env.EMAIL_USER || 'nhl170100@gmail.com',
+      pass: process.env.EMAIL_PASS // You'll need to set this with app password
     },
-    from: process.env.EMAIL_FROM || 'noreply@urlshortener.com'
+    from: process.env.EMAIL_FROM || 'nhl170100@gmail.com'
   },
   logging: {
     level: process.env.LOG_LEVEL || 'info',

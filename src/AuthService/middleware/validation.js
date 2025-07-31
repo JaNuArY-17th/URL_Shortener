@@ -77,11 +77,51 @@ const changePasswordValidationRules = [
   ...passwordComplexityRules.map(rule => rule.withMessage('New password ' + rule.message))
 ];
 
+/**
+ * Validation rules for forgot password request
+ */
+const forgotPasswordValidationRules = [
+  body('email')
+    .trim()
+    .isEmail().withMessage('Please enter a valid email')
+    .normalizeEmail()
+];
+
+/**
+ * Validation rules for OTP verification
+ */
+const verifyOtpValidationRules = [
+  body('email')
+    .trim()
+    .isEmail().withMessage('Please enter a valid email')
+    .normalizeEmail(),
+  body('otpCode')
+    .isLength({ min: 6, max: 6 }).withMessage('OTP code must be 6 digits')
+    .isNumeric().withMessage('OTP code must contain only numbers')
+];
+
+/**
+ * Validation rules for reset password
+ */
+const resetPasswordValidationRules = [
+  body('email')
+    .trim()
+    .isEmail().withMessage('Please enter a valid email')
+    .normalizeEmail(),
+  body('otpCode')
+    .isLength({ min: 6, max: 6 }).withMessage('OTP code must be 6 digits')
+    .isNumeric().withMessage('OTP code must contain only numbers'),
+  ...passwordComplexityRules
+];
+
 module.exports = {
   validate,
   registerValidationRules,
   loginValidationRules,
   updateUserValidationRules,
   changePasswordValidationRules,
-  passwordComplexityRules
+  passwordComplexityRules,
+  forgotPasswordValidationRules,
+  verifyOtpValidationRules,
+  resetPasswordValidationRules
 }; 

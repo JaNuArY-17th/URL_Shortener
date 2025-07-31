@@ -144,6 +144,21 @@ export const authAPI = {
     const response = await api.put('/api/users/password', data);
     return response.data;
   },
+
+  forgotPassword: async (email: string) => {
+    const response = await api.post('/api/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  verifyOtp: async (email: string, otpCode: string) => {
+    const response = await api.post('/api/auth/verify-otp', { email, otpCode });
+    return response.data;
+  },
+
+  resetPassword: async (email: string, otpCode: string, password: string) => {
+    const response = await api.post('/api/auth/reset-password', { email, otpCode, password });
+    return response.data;
+  },
 };
 
 // URL API

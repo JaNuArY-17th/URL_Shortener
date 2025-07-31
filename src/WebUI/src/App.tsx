@@ -7,6 +7,9 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import VerifyOtp from "./pages/VerifyOtp";
+import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import History from "./pages/History";
 import NotFound from "./pages/NotFound";
@@ -28,6 +31,9 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
             <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
             <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />

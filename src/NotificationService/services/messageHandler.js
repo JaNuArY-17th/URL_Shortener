@@ -20,7 +20,9 @@ class MessageHandler {
     this.processors = {
       'url.created': this.processUrlCreatedEvent.bind(this),
       'url.redirect': this.processRedirectEvent.bind(this),
-      'user.created': this.processUserCreatedEvent.bind(this)
+      'user.created': this.processUserCreatedEvent.bind(this),
+      'password.reset.requested': this.processPasswordResetRequestedEvent.bind(this),
+      'password.reset.completed': this.processPasswordResetCompletedEvent.bind(this)
     };
   }
 
@@ -134,6 +136,19 @@ class MessageHandler {
       userQueue.queue,
       config.rabbitmq.exchanges.userEvents,
       config.rabbitmq.routingKeys.userCreated
+    );
+    
+    // Bind password reset events to user queue
+    await this.channel.bindQueue(
+      userQueue.queue,
+      config.rabbitmq.exchanges.userEvents,
+      config.rabbitmq.routingKeys.passwordResetRequested
+    );
+    
+    await this.channel.bindQueue(
+      userQueue.queue,
+      config.rabbitmq.exchanges.userEvents,
+      config.rabbitmq.routingKeys.passwordResetCompleted
     );
     
     logger.info('RabbitMQ exchanges and queues configured successfully', {
@@ -349,6 +364,151 @@ class MessageHandler {
     } catch (err) {
       logger.error('Error processing user created event:', err);
       throw err;
+    }
+  }
+
+  /**
+   * Process password reset requested event
+   * @private
+   * @param {Object} data - Event data
+   * @returns {Promise<void>}
+   */
+  async processPasswordResetRequestedEvent(data) {
+    try {
+      const { email, otpCode, userName, requestId, expiresAt } = data;
+      
+      logger.info(`Processing password reset request for ${email}`);
+
+      // Send OTP email directly using emailService
+      const emailService = require('./emailService');
+      
+      const subject = 'Password Reset - Your OTP Code';
+      const expiryTime = new Date(expiresAt).toLocaleString();
+      
+      const text = `Hi ${userName},
+
+You requested a password reset for your URL Shortener account.
+
+Your OTP code is: ${otpCode}
+
+This code will expire at: ${expiryTime}
+
+If you didn't request this password reset, please ignore this email.
+
+Best regards,
+URL Shortener Team`;
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #4a6ee0; margin: 0;">URL Shortener</h1>
+            <p style="color: #666; margin: 5px 0;">Password Reset Request</p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h2 style="color: #333; margin-top: 0;">Hi ${userName},</h2>
+            <p style="color: #555; line-height: 1.6;">
+              You requested a password reset for your URL Shortener account.
+            </p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <div style="background: #4a6ee0; color: white; padding: 15px 30px; border-radius: 6px; display: inline-block; font-size: 24px; font-weight: bold; letter-spacing: 3px;">
+                ${otpCode}
+              </div>
+            </div>
+            
+            <p style="color: #555; line-height: 1.6;">
+              <strong>This code will expire at:</strong> ${expiryTime}
+            </p>
+            
+            <p style="color: #555; line-height: 1.6;">
+              If you didn't request this password reset, please ignore this email.
+            </p>
+          </div>
+          
+          <div style="text-align: center; color: #666; font-size: 12px; border-top: 1px solid #eee; padding-top: 20px;">
+            <p>This is an automated message from URL Shortener Service.</p>
+            <p>Please do not reply to this email.</p>
+          </div>
+        </div>
+      `;
+
+      await emailService.sendEmail(email, subject, text, html);
+      
+      logger.info(`Password reset OTP sent to ${email}`);
+      
+    } catch (error) {
+      logger.error('Error processing password reset requested event:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Process password reset completed event
+   * @private
+   * @param {Object} data - Event data
+   * @returns {Promise<void>}
+   */
+  async processPasswordResetCompletedEvent(data) {
+    try {
+      const { email, userName, userId, resetAt } = data;
+      
+      logger.info(`Processing password reset completion for ${email}`);
+
+      // Send confirmation email
+      const emailService = require('./emailService');
+      
+      const subject = 'Password Reset Successful';
+      const resetTime = new Date(resetAt).toLocaleString();
+      
+      const text = `Hi ${userName},
+
+Your password has been successfully reset.
+
+Reset completed at: ${resetTime}
+
+If you didn't perform this action, please contact our support team immediately.
+
+Best regards,
+URL Shortener Team`;
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #4a6ee0; margin: 0;">URL Shortener</h1>
+            <p style="color: #666; margin: 5px 0;">Password Reset Confirmation</p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h2 style="color: #333; margin-top: 0;">Hi ${userName},</h2>
+            <p style="color: #555; line-height: 1.6;">
+              Your password has been successfully reset.
+            </p>
+            
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 6px; margin: 20px 0;">
+              <strong>✓ Password Reset Successful</strong><br>
+              Reset completed at: ${resetTime}
+            </div>
+            
+            <p style="color: #555; line-height: 1.6;">
+              If you didn't perform this action, please contact our support team immediately.
+            </p>
+          </div>
+          
+          <div style="text-align: center; color: #666; font-size: 12px; border-top: 1px solid #eee; padding-top: 20px;">
+            <p>This is an automated message from URL Shortener Service.</p>
+            <p>Please do not reply to this email.</p>
+          </div>
+        </div>
+      `;
+
+      await emailService.sendEmail(email, subject, text, html);
+      
+      logger.info(`Password reset confirmation sent to ${email}`);
+      
+    } catch (error) {
+      logger.error('Error processing password reset completed event:', error);
+      throw error;
     }
   }
 

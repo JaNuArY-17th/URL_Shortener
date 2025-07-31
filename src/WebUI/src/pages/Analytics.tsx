@@ -12,8 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import {
   Loader2,
   BarChart4,
-  LineChart,
-  PieChart,
+  // LineChart,
+  // PieChart,
   Calendar,
   Download,
   ArrowLeft,
@@ -25,6 +25,8 @@ import {
   Filter
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 // Define types for our API responses
 interface AnalyticsSummary {
@@ -672,6 +674,302 @@ const Analytics = () => {
                     </CardContent>
                   </Card> */}
                 </div>
+              </TabsContent>
+
+              {/* Click Analytics Tab */}
+              <TabsContent value="clicks" className="space-y-6">
+                {timeseries && (
+                  <>
+                    {/* Click Trends Chart */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <LineChart className="h-5 w-5" />
+                          Click Trends Over Time
+                        </CardTitle>
+                        <CardDescription>
+                          Track clicks and unique visitors over the selected period
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ChartContainer
+                          config={{
+                            clicks: {
+                              label: "Clicks",
+                              color: "#3b82f6",
+                            },
+                            uniqueVisitors: {
+                              label: "Unique Visitors",
+                              color: "#10b981",
+                            },
+                          }}
+                          className="h-[400px]"
+                        >
+                          <AreaChart
+                            data={timeseries.labels.map((label, index) => ({
+                              date: label,
+                              clicks: timeseries.clicks[index] || 0,
+                              uniqueVisitors: timeseries.uniqueVisitors[index] || 0,
+                            }))}
+                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="date" />
+                            <YAxis />
+                            <ChartTooltip content={<ChartTooltipContent />} />
+                            <ChartLegend content={<ChartLegendContent />} />
+                            <Area
+                              type="monotone"
+                              dataKey="clicks"
+                              stackId="1"
+                              stroke="var(--color-clicks)"
+                              fill="var(--color-clicks)"
+                              fillOpacity={0.6}
+                            />
+                            <Area
+                              type="monotone"
+                              dataKey="uniqueVisitors"
+                              stackId="2"
+                              stroke="var(--color-uniqueVisitors)"
+                              fill="var(--color-uniqueVisitors)"
+                              fillOpacity={0.6}
+                            />
+                          </AreaChart>
+                        </ChartContainer>
+                      </CardContent>
+                    </Card>
+
+                    {/* Click Distribution Charts */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      {/* Top Referrers Chart */}
+                      {summary?.topReferrers && summary.topReferrers.length > 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <BarChart4 className="h-5 w-5" />
+                              Top Referrers
+                            </CardTitle>
+                            <CardDescription>
+                              Sources driving the most traffic
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <ChartContainer
+                              config={{
+                                count: {
+                                  label: "Clicks",
+                                  color: "#f59e0b",
+                                },
+                              }}
+                              className="h-[300px]"
+                            >
+                              <BarChart
+                                data={summary.topReferrers.slice(0, 8)}
+                                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                              >
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis 
+                                  dataKey="source" 
+                                  angle={-45}
+                                  textAnchor="end"
+                                  height={80}
+                                />
+                                <YAxis />
+                                <ChartTooltip content={<ChartTooltipContent />} />
+                                <Bar dataKey="count" fill="var(--color-count)" />
+                              </BarChart>
+                            </ChartContainer>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Top Locations Chart */}
+                      {summary?.topLocations && summary.topLocations.length > 0 && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <PieChart className="h-5 w-5" />
+                              Geographic Distribution
+                            </CardTitle>
+                            <CardDescription>
+                              Clicks by location
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <ChartContainer
+                              config={{
+                                count: {
+                                  label: "Clicks",
+                                  color: "#8b5cf6",
+                                },
+                              }}
+                              className="h-[300px]"
+                            >
+                              <PieChart>
+                                <Pie
+                                  data={summary.topLocations.slice(0, 6)}
+                                  cx="50%"
+                                  cy="50%"
+                                  labelLine={false}
+                                  label={({ location, percent }) => 
+                                    `${location} ${(percent * 100).toFixed(0)}%`
+                                  }
+                                  outerRadius={80}
+                                  fill="#8884d8"
+                                  dataKey="count"
+                                  nameKey="location"
+                                >
+                                  {summary.topLocations.slice(0, 6).map((entry, index) => {
+                                    const colors = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ef4444", "#06b6d4"];
+                                    return (
+                                      <Cell 
+                                        key={`cell-${index}`} 
+                                        fill={colors[index % colors.length]} 
+                                      />
+                                    );
+                                  })}
+                                </Pie>
+                                <ChartTooltip content={<ChartTooltipContent />} />
+                              </PieChart>
+                            </ChartContainer>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+
+                    {/* URL-specific analytics if a URL is selected */}
+                    {selectedShortCode && urlAnalytics && (
+                      <>
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                              <BarChart4 className="h-5 w-5" />
+                              Device & Browser Analytics
+                            </CardTitle>
+                            <CardDescription>
+                              Breakdown of clicks by device type and browser for {selectedShortCode}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              {/* Device Types */}
+                              {urlAnalytics.devices && urlAnalytics.devices.length > 0 && (
+                                <div>
+                                  <h4 className="text-sm font-medium mb-3">Device Types</h4>
+                                  <ChartContainer
+                                    config={{
+                                      count: {
+                                        label: "Clicks",
+                                        color: "#ef4444",
+                                      },
+                                    }}
+                                    className="h-[200px]"
+                                  >
+                                    <BarChart
+                                      data={urlAnalytics.devices.slice(0, 5)}
+                                      layout="horizontal"
+                                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                    >
+                                      <CartesianGrid strokeDasharray="3 3" />
+                                      <XAxis type="number" />
+                                      <YAxis dataKey="type" type="category" width={80} />
+                                      <ChartTooltip content={<ChartTooltipContent />} />
+                                      <Bar dataKey="count" fill="var(--color-count)" />
+                                    </BarChart>
+                                  </ChartContainer>
+                                </div>
+                              )}
+
+                              {/* Browsers */}
+                              {urlAnalytics.browsers && urlAnalytics.browsers.length > 0 && (
+                                <div>
+                                  <h4 className="text-sm font-medium mb-3">Browsers</h4>
+                                  <ChartContainer
+                                    config={{
+                                      count: {
+                                        label: "Clicks",
+                                        color: "#06b6d4",
+                                      },
+                                    }}
+                                    className="h-[200px]"
+                                  >
+                                    <BarChart
+                                      data={urlAnalytics.browsers.slice(0, 5)}
+                                      layout="horizontal"
+                                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                    >
+                                      <CartesianGrid strokeDasharray="3 3" />
+                                      <XAxis type="number" />
+                                      <YAxis dataKey="name" type="category" width={80} />
+                                      <ChartTooltip content={<ChartTooltipContent />} />
+                                      <Bar dataKey="count" fill="var(--color-count)" />
+                                    </BarChart>
+                                  </ChartContainer>
+                                </div>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Daily Clicks Chart */}
+                        {urlAnalytics.clicksByDay && urlAnalytics.clicksByDay.length > 0 && (
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="flex items-center gap-2">
+                                <Calendar className="h-5 w-5" />
+                                Daily Click Pattern
+                              </CardTitle>
+                              <CardDescription>
+                                Daily click distribution for {selectedShortCode}
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <ChartContainer
+                                config={{
+                                  clicks: {
+                                    label: "Daily Clicks",
+                                    color: "#10b981",
+                                  },
+                                }}
+                                className="h-[300px]"
+                              >
+                                <LineChart
+                                  data={urlAnalytics.clicksByDay.map(day => ({
+                                    date: new Date(day.date).toLocaleDateString(),
+                                    clicks: day.clicks,
+                                  }))}
+                                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                >
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis dataKey="date" />
+                                  <YAxis />
+                                  <ChartTooltip content={<ChartTooltipContent />} />
+                                  <Line 
+                                    type="monotone" 
+                                    dataKey="clicks" 
+                                    stroke="var(--color-clicks)" 
+                                    strokeWidth={2}
+                                    dot={{ fill: "var(--color-clicks)" }}
+                                  />
+                                </LineChart>
+                              </ChartContainer>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </>
+                    )}
+                  </>
+                )}
+
+                {!timeseries && (
+                  <div className="flex flex-col items-center justify-center h-60">
+                    <BarChart4 className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-2">No analytics data available</p>
+                    <p className="text-sm text-muted-foreground">
+                      Analytics will appear here once you have some URL clicks
+                    </p>
+                  </div>
+                )}
               </TabsContent>
 
               {/* URL DETAILS TAB */}
