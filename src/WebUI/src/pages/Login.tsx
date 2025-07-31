@@ -28,20 +28,11 @@ export default function Login() {
       return;
     }
 
-    try {
-      await login(email, password);
-      toast({
-        title: "Success",
-        description: "Login successful!",
-      });
+    const success = await login(email, password);
+    if (success) {
       navigate("/dashboard");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Invalid email or password",
-        variant: "destructive",
-      });
     }
+    // Note: Error handling is now done in AuthContext, so no need for additional toasts here
   };
 
   return (
