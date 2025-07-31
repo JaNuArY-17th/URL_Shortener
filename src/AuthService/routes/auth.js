@@ -3,15 +3,19 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const PasswordReset = require('../models/PasswordReset');
+const EmailVerification = require('../models/EmailVerification');
 const { publishEvent } = require('../services/messagePublisher');
 const config = require('../config/config');
 const rateLimit = require('express-rate-limit');
 const { 
-  registerValidationRules, 
+  registerValidationRules,
+  verifySignupEmailValidationRules,
   loginValidationRules,
   forgotPasswordValidationRules,
   verifyOtpValidationRules,
   resetPasswordValidationRules,
+  requestEmailChangeValidationRules,
+  verifyEmailChangeValidationRules,
   validate 
 } = require('../middleware/validation');
 

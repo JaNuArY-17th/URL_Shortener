@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Link2, Loader2, Check, X } from "lucide-react";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 // Password validation rules (matching backend constraints)
 const passwordRules = [
@@ -45,8 +46,10 @@ export default function Register() {
     passwordRules.map(rule => ({ ...rule, valid: false }))
   );
   const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
+  const [step, setStep] = useState(1); // 1: Form, 2: OTP Verification
+  const [otp, setOtp] = useState("");
   const { toast } = useToast();
-  const { register, isLoading } = useAuth();
+  const { sendSignupOtp, verifySignupOtp, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,21 +109,133 @@ export default function Register() {
     }
 
     try {
-      await register(formData.name, formData.email, formData.password);
-      toast({
-        title: "Success",
-        description: "Account created successfully!",
-      });
-      navigate("/dashboard");
+      const success = await sendSignupOtp(formData.name, formData.email, formData.password);
+      if (success) {
+        setStep(2); // Move to OTP verification step
+      }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create account",
-        variant: "destructive",
-      });
+      // Error handling is done in sendSignupOtp
     }
   };
 
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (otp.length !== 6) {
+      toast({
+        title: "Error",
+        description: "Please enter the complete 6-digit verification code",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const success = await verifySignupOtp(formData.name, formData.email, formData.password, otp);
+      if (success) {
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      // Error handling is done in verifySignupOtp
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      await sendSignupOtp(formData.name, formData.email, formData.password);
+      setOtp(""); // Clear current OTP
+    } catch (error) {
+      // Error handling is done in sendSignupOtp
+    }
+  };
+
+  // Step 2: OTP Verification
+  if (step === 2) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative">
+        {/* Back button */}
+        <div className="absolute top-4 left-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() => setStep(1)}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+
+        {/* Brand logo */}
+        <div className="mb-6 flex items-center gap-2">
+          <div className="p-2 bg-gradient-primary rounded-lg">
+            <Link2 className="h-6 w-6 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            QuickLink
+          </h2>
+        </div>
+        
+        <Card className="w-full max-w-md shadow-soft">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Verify Your Email</CardTitle>
+            <CardDescription>
+              We've sent a 6-digit verification code to {formData.email}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleOtpSubmit} className="space-y-6">
+              <div className="flex justify-center">
+                <InputOTP
+                  maxLength={6}
+                  value={otp}
+                  onChange={(value) => setOtp(value)}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full" 
+                variant="gradient" 
+                disabled={isLoading || otp.length !== 6}
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Verify & Create Account"
+                )}
+              </Button>
+            </form>
+
+            <div className="mt-6 text-center space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Didn't receive the code?
+              </p>
+              <Button
+                variant="link"
+                className="p-0 h-auto text-primary"
+                onClick={handleResendOtp}
+                disabled={isLoading}
+              >
+                Resend code
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Step 1: Registration Form
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative">
       {/* Back to home button */}

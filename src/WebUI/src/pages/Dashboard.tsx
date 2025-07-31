@@ -61,9 +61,8 @@ interface AnalyticsSummary {
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const [url, setUrl] = useState("");
-  const [customAlias, setCustomAlias] = useState("");
   const [expiresAt, setExpiresAt] = useState<string>("");
-  const [showCustomAlias, setShowCustomAlias] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingUrls, setIsLoadingUrls] = useState(true);
   const [isLoadingStats, setIsLoadingStats] = useState(true);
@@ -256,8 +255,7 @@ export default function Dashboard() {
       // Call API to create short URL with proper payload
       const response = await urlAPI.shorten({
         originalUrl: url,
-        customAlias: customAlias || undefined,
-        expiresAt: expiresAt || undefined
+        expiresAt: expiresAt || undefined,
       });
 
       // After successful creation, refresh the URLs list
@@ -271,9 +269,8 @@ export default function Dashboard() {
 
       // Reset form
       setUrl("");
-      setCustomAlias("");
       setExpiresAt("");
-      setShowCustomAlias(false);
+      setShowAdvanced(false);
 
       toast({
         title: "Success!",
@@ -596,30 +593,19 @@ export default function Dashboard() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 className="w-full"
-                onKeyPress={(e) => e.key === 'Enter' && !showCustomAlias && handleShorten()}
+                onKeyPress={(e) => e.key === 'Enter' && !showAdvanced && handleShorten()}
               />
 
-              {showCustomAlias && (
-                <>
-                  <div className="flex gap-2 items-center">
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">Custom alias:</span>
-                    <Input
-                      placeholder="your-custom-code (optional)"
-                      value={customAlias}
-                      onChange={(e) => setCustomAlias(e.target.value)}
-                      className="flex-1"
-                    />
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">Expires at:</span>
-                    <Input
-                      type="datetime-local"
-                      value={expiresAt}
-                      onChange={(e) => setExpiresAt(e.target.value)}
-                      className="flex-1"
-                    />
-                  </div>
-                </>
+              {showAdvanced && (
+                <div className="flex gap-2 items-center">
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">Expires at:</span>
+                  <Input
+                    type="datetime-local"
+                    value={expiresAt}
+                    onChange={(e) => setExpiresAt(e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
               )}
 
               <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
@@ -627,10 +613,10 @@ export default function Dashboard() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setShowCustomAlias(!showCustomAlias)}
+                  onClick={() => setShowAdvanced(!showAdvanced)}
                   className="sm:ml-auto"
                 >
-                  {showCustomAlias ? "Hide advanced options" : "Advanced options"}
+                  {showAdvanced ? "Hide advanced options" : "Advanced options"}
                 </Button>
 
                 <Button

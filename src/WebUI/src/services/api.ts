@@ -96,6 +96,16 @@ export const authAPI = {
     const response = await api.post('/api/auth/register', { name, email, password });
     return response.data;
   },
+
+  sendSignupOtp: async (name: string, email: string, password: string) => {
+    const response = await api.post('/api/auth/register/send-otp', { name, email, password });
+    return response.data;
+  },
+
+  verifySignupOtp: async (name: string, email: string, password: string, otpCode: string) => {
+    const response = await api.post('/api/auth/register', { name, email, password, otpCode });
+    return response.data;
+  },
   
   logout: async () => {
     localStorage.removeItem('token');

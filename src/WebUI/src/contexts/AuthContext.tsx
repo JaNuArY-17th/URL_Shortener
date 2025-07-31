@@ -17,6 +17,9 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string) => Promise<boolean>;
+  sendSignupOtp: (name: string, email: string, password: string) => Promise<boolean>;
+  verifySignupOtp: (name: string, email: string, password: string, otpCode: string) => Promise<boolean>;
+  updateProfile: (data: { name?: string; email?: string }) => Promise<boolean>;
   logout: () => void;
   validateToken: () => Promise<boolean>;
 }
@@ -145,6 +148,62 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const sendSignupOtp = async (name: string, email: string, password: string) => {
+    try {
+      const response = await authAPI.sendSignupOtp(name, email, password);
+      toast({
+        title: "Success",
+        description: "Verification code sent to your email.",
+      });
+      return true;
+    } catch (error) {
+      console.error('Send signup OTP error:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to send verification code. Please try again.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  const verifySignupOtp = async (name: string, email: string, password: string, otpCode: string) => {
+    try {
+      const response = await authAPI.verifySignupOtp(name, email, password, otpCode);
+      
+      if (response.token && response.user) {
+        setUser(response.user);
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        
+        // Connect socket after successful registration
+        console.log('Registration successful, connecting socket');
+        connectSocket(response.token);
+
+        toast({
+          title: "Success",
+          description: "Your account has been created successfully.",
+        });
+        return true;
+      } else {
+        toast({
+          title: "Error",
+          description: "Registration failed. Invalid response from server.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Verify signup OTP error:', error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Invalid or expired verification code.",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   const logout = () => {
     // Disconnect socket when logging out
     console.log('Logging out, disconnecting socket');
@@ -161,6 +220,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
     
     navigate('/login');
+  };
+
+  const updateProfile = async (data: { name?: string; email?: string }) => {
+    try {
+      const response = await authAPI.updateProfile(data);
+      if (response.user) {
+        setUser(response.user);
+        // Update localStorage immediately to reflect changes
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+      return true;
+    } catch (error) {
+      console.error('Update profile error:', error);
+      throw error;
+    }
   };
 
   const validateToken = async () => {
@@ -184,6 +258,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isLoading,
         login,
         register,
+        sendSignupOtp,
+        verifySignupOtp,
+        updateProfile,
         logout,
         validateToken
       }}
