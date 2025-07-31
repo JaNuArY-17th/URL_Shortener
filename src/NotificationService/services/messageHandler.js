@@ -180,13 +180,13 @@ class MessageHandler {
           const content = JSON.parse(msg.content.toString());
           const routingKey = msg.fields.routingKey;
           
-          logger.debug(`Received message with routing key ${routingKey}:`, content);
+          logger.info(`Received URL message with routing key ${routingKey}:`, content);
           
           // Process message based on routing key
           if (this.processors[routingKey]) {
-            await this.processors[routingKey](content);
+            await this.processors[routingKey](content.data || content);
           } else {
-            logger.warn(`No processor found for routing key: ${routingKey}`);
+            logger.warn(`No processor found for routing key: ${routingKey}`, { availableProcessors: Object.keys(this.processors) });
           }
           
           // Acknowledge message
@@ -210,13 +210,13 @@ class MessageHandler {
           const content = JSON.parse(msg.content.toString());
           const routingKey = msg.fields.routingKey;
           
-          logger.debug(`Received message with routing key ${routingKey}:`, content);
+          logger.info(`Received USER message with routing key ${routingKey}:`, content);
           
           // Process message based on routing key
           if (this.processors[routingKey]) {
-            await this.processors[routingKey](content);
+            await this.processors[routingKey](content.data || content);
           } else {
-            logger.warn(`No processor found for routing key: ${routingKey}`);
+            logger.warn(`No processor found for routing key: ${routingKey}`, { availableProcessors: Object.keys(this.processors) });
           }
           
           // Acknowledge message
