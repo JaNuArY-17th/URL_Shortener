@@ -100,11 +100,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         return false;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
+      
+      // Handle different status codes
+      let errorMessage = "Login failed. Please try again.";
+      let errorTitle = "Login Failed";
+      
+      if (error.response) {
+        const status = error.response.status;
+        const serverMessage = error.response.data?.message;
+        
+        switch (status) {
+          case 400:
+            errorTitle = "Invalid Credentials";
+            errorMessage = serverMessage || "Invalid email or password. Please check your credentials.";
+            break;
+          case 401:
+            errorTitle = "Unauthorized";
+            errorMessage = serverMessage || "Invalid email or password.";
+            break;
+          case 403:
+            errorTitle = "Access Forbidden";
+            errorMessage = serverMessage || "Your account access has been restricted.";
+            break;
+          case 404:
+            errorTitle = "Account Not Found";
+            errorMessage = serverMessage || "No account found with this email address.";
+            break;
+          case 429:
+            errorTitle = "Too Many Attempts";
+            errorMessage = serverMessage || "Too many login attempts. Please try again later.";
+            break;
+          case 500:
+            errorTitle = "Server Error";
+            errorMessage = serverMessage || "Server error occurred. Please try again later.";
+            break;
+          default:
+            errorTitle = "Login Failed";
+            errorMessage = serverMessage || `Login failed with status ${status}. Please try again.`;
+        }
+      } else if (error.request) {
+        errorTitle = "Network Error";
+        errorMessage = "Unable to connect to server. Please check your internet connection.";
+      }
+      
       toast({
-        title: "Error",
-        description: error.response?.data?.message || "Login failed. Please check your credentials.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
       return false;
@@ -156,11 +199,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "Verification code sent to your email.",
       });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Send signup OTP error:', error);
+      
+      // Handle different status codes
+      let errorMessage = "Failed to send verification code. Please try again.";
+      let errorTitle = "Verification Failed";
+      
+      if (error.response) {
+        const status = error.response.status;
+        const serverMessage = error.response.data?.message;
+        
+        switch (status) {
+          case 400:
+            errorTitle = "Invalid Information";
+            errorMessage = serverMessage || "Please check your information and try again.";
+            break;
+          case 409:
+            errorTitle = "Account Already Exists";
+            errorMessage = serverMessage || "An account with this email already exists.";
+            break;
+          case 429:
+            errorTitle = "Too Many Requests";
+            errorMessage = serverMessage || "Too many verification requests. Please try again later.";
+            break;
+          case 500:
+            errorTitle = "Server Error";
+            errorMessage = serverMessage || "Server error occurred. Please try again later.";
+            break;
+          default:
+            errorTitle = "Verification Failed";
+            errorMessage = serverMessage || `Request failed with status ${status}. Please try again.`;
+        }
+      } else if (error.request) {
+        errorTitle = "Network Error";
+        errorMessage = "Unable to connect to server. Please check your internet connection.";
+      }
+      
       toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to send verification code. Please try again.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
       return false;
@@ -193,11 +271,46 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
         return false;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Verify signup OTP error:', error);
+      
+      // Handle different status codes
+      let errorMessage = "Invalid or expired verification code.";
+      let errorTitle = "Verification Failed";
+      
+      if (error.response) {
+        const status = error.response.status;
+        const serverMessage = error.response.data?.message;
+        
+        switch (status) {
+          case 400:
+            errorTitle = "Invalid Code";
+            errorMessage = serverMessage || "Invalid or expired verification code. Please try again.";
+            break;
+          case 409:
+            errorTitle = "Account Already Exists";
+            errorMessage = serverMessage || "An account with this email already exists.";
+            break;
+          case 429:
+            errorTitle = "Too Many Attempts";
+            errorMessage = serverMessage || "Too many verification attempts. Please try again later.";
+            break;
+          case 500:
+            errorTitle = "Server Error";
+            errorMessage = serverMessage || "Server error occurred. Please try again later.";
+            break;
+          default:
+            errorTitle = "Verification Failed";
+            errorMessage = serverMessage || `Verification failed with status ${status}. Please try again.`;
+        }
+      } else if (error.request) {
+        errorTitle = "Network Error";
+        errorMessage = "Unable to connect to server. Please check your internet connection.";
+      }
+      
       toast({
-        title: "Error",
-        description: error.response?.data?.message || "Invalid or expired verification code.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
       return false;
