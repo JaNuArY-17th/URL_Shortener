@@ -15,7 +15,16 @@ const config = {
     expiresIn: process.env.JWT_EXPIRES_IN || '24h'
   },
   rabbitmq: {
-    uri: process.env.RABBITMQ_URI || 'amqp://localhost:5672'
+    uri: process.env.RABBITMQ_URI || 'amqp://localhost:5672',
+    exchanges: {
+      userEvents: process.env.RABBITMQ_USER_EVENTS_EXCHANGE || 'user-events'
+    },
+    routingKeys: {
+      userCreated: 'user.created',
+      passwordResetRequested: 'password.reset.requested',
+      passwordResetCompleted: 'password.reset.completed',
+      emailVerificationRequested: 'email.verification.requested'
+    }
   },
   cors: {
     origins: process.env.CORS_ORIGINS ? 

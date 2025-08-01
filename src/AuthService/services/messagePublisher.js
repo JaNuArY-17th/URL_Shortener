@@ -18,7 +18,7 @@ const connectRabbitMQ = async () => {
       durable: true
     });
     
-    await channel.assertExchange('user-events', 'topic', {
+    await channel.assertExchange(config.rabbitmq.exchanges.userEvents, 'topic', {
       durable: true
     });
     
@@ -50,17 +50,20 @@ const publishEvent = async (eventName, data) => {
 
     // Map event names to proper routing keys
     const routingKeyMap = {
-      'password.reset.requested': 'password.reset.requested',
-      'password.reset.completed': 'password.reset.completed',
-      'UserCreatedEvent': 'user.created'
+      'password.reset.requested': config.rabbitmq.routingKeys.passwordResetRequested,
+      'password.reset.completed': config.rabbitmq.routingKeys.passwordResetCompleted,
+      'UserCreatedEvent': config.rabbitmq.routingKeys.userCreated,
+      'email.verification.requested': config.rabbitmq.routingKeys.emailVerificationRequested
     };
     
     const routingKey = routingKeyMap[eventName] || `event.${eventName.toLowerCase()}`;
     
     // Use user-events exchange for password reset events
-    const exchange = (eventName.includes('password.reset') || eventName === 'UserCreatedEvent') 
-      ? 'user-events' 
-      : 'url-shortener-events';
+    const exchange = (
+      eventName.includes('password.reset') || 
+      eventName === 'UserCreatedEvent' || 
+      eventName === 'email.verification.requested'
+    ) ? config.rabbitmq.exchanges.userEvents : 'url-shortener-events';
     
     channel.publish(
       exchange, 

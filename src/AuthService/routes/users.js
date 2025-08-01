@@ -5,8 +5,12 @@ const { authenticate } = require('../middleware/authenticate');
 const { 
   updateUserValidationRules, 
   changePasswordValidationRules,
-  validate 
+  validate,
+  requestEmailChangeValidationRules,
+  verifyEmailChangeValidationRules
 } = require('../middleware/validation');
+const EmailVerification = require('../models/EmailVerification');
+const { publishEvent } = require('../services/messagePublisher');
 
 /**
  * @swagger
@@ -316,5 +320,233 @@ router.get('/:id', authenticate('admin'), async (req, res, next) => {
     next(err);
   }
 });
+
+/**
+ * @swagger
+ * /api/users/email/request-change:
+ *   post:
+ *     summary: Request email change
+ *     description: Sends a verification code to the new email address
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: New email address
+ *     responses:
+ *       200:
+ *         description: Verification code sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Verification code sent to your email
+ *                 expiresAt:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: Invalid input or email already in use
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.post(
+  '/email/request-change',
+  authenticate(),
+  requestEmailChangeValidationRules,
+  validate,
+  async (req, res, next) => {
+    try {
+      const { email } = req.body;
+      const userId = req.user.id;
+
+      // Check if email is different from current
+      const user = await User.findById(userId);
+      if (user.email === email) {
+        const error = new Error('New email must be different from current email');
+        error.statusCode = 400;
+        return next(error);
+      }
+
+      // Check if email already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        const error = new Error('Email already in use');
+        error.statusCode = 400;
+        return next(error);
+      }
+
+      // Generate 6-digit OTP
+      const otpCode = EmailVerification.generateOTP();
+
+      // Clean up any existing verification requests for this user
+      await EmailVerification.deleteMany({ 
+        userId, 
+        type: 'email_change' 
+      });
+
+      // Create new email verification
+      const emailVerification = new EmailVerification({
+        email,
+        otpCode,
+        type: 'email_change',
+        userId,
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 minutes expiry
+      });
+      await emailVerification.save();
+
+      // Publish event to send OTP email
+      await publishEvent('email.verification.requested', {
+        email,
+        otpCode,
+        userName: user.name,
+        requestId: emailVerification._id.toString(),
+        expiresAt: emailVerification.expiresAt
+      });
+
+      res.json({
+        status: 'success',
+        message: 'Verification code sent to your new email',
+        expiresAt: emailVerification.expiresAt
+      });
+
+    } catch (error) {
+      console.error('Error requesting email change:', error);
+      if (!error.statusCode) {
+        error.statusCode = 500;
+        error.message = 'Server error';
+      }
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/users/email/verify-change:
+ *   post:
+ *     summary: Verify and complete email change
+ *     description: Verifies the OTP and updates the user's email address
+ *     tags:
+ *       - Users
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - otpCode
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: New email address
+ *               otpCode:
+ *                 type: string
+ *                 description: 6-digit verification code
+ *     responses:
+ *       200:
+ *         description: Email updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Email updated successfully
+ *                 user:
+ *                   $ref: '#/components/schemas/User'
+ *       400:
+ *         description: Invalid OTP or email
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *       500:
+ *         description: Server error
+ */
+router.post(
+  '/email/verify-change',
+  authenticate(),
+  verifyEmailChangeValidationRules,
+  validate,
+  async (req, res, next) => {
+    try {
+      const { email, otpCode } = req.body;
+      const userId = req.user.id;
+
+      // Find valid verification request
+      const emailVerification = await EmailVerification.findOne({
+        email,
+        otpCode,
+        userId,
+        type: 'email_change',
+        used: false,
+        expiresAt: { $gt: new Date() }
+      });
+
+      if (!emailVerification) {
+        const error = new Error('Invalid or expired verification code');
+        error.statusCode = 400;
+        return next(error);
+      }
+
+      // Update user's email
+      const user = await User.findByIdAndUpdate(
+        userId,
+        { 
+          $set: { 
+            email,
+            updatedAt: Date.now()
+          } 
+        },
+        { new: true }
+      ).select('-password');
+
+      // Mark verification as used
+      emailVerification.used = true;
+      await emailVerification.save();
+
+      // Send response
+      res.json({
+        status: 'success',
+        message: 'Email updated successfully',
+        user
+      });
+
+    } catch (error) {
+      console.error('Error verifying email change:', error);
+      if (!error.statusCode) {
+        error.statusCode = 500;
+        error.message = 'Server error';
+      }
+      next(error);
+    }
+  }
+);
 
 module.exports = router; 

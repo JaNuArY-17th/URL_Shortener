@@ -22,7 +22,8 @@ class MessageHandler {
       'url.redirect': this.processRedirectEvent.bind(this),
       'user.created': this.processUserCreatedEvent.bind(this),
       'password.reset.requested': this.processPasswordResetRequestedEvent.bind(this),
-      'password.reset.completed': this.processPasswordResetCompletedEvent.bind(this)
+      'password.reset.completed': this.processPasswordResetCompletedEvent.bind(this),
+      'email.verification.requested': this.processEmailVerificationRequestedEvent.bind(this)
     };
   }
 
@@ -151,6 +152,13 @@ class MessageHandler {
       config.rabbitmq.routingKeys.passwordResetCompleted
     );
     
+    // Bind email verification event to user queue
+    await this.channel.bindQueue(
+      userQueue.queue,
+      config.rabbitmq.exchanges.userEvents,
+      'email.verification.requested'
+    );
+    
     logger.info('RabbitMQ exchanges and queues configured successfully', {
       urlEvents: config.rabbitmq.exchanges.urlEvents,
       userEvents: config.rabbitmq.exchanges.userEvents,
@@ -159,7 +167,10 @@ class MessageHandler {
       bindings: [
         config.rabbitmq.routingKeys.urlCreated,
         config.rabbitmq.routingKeys.urlRedirect,
-        config.rabbitmq.routingKeys.userCreated
+        config.rabbitmq.routingKeys.userCreated,
+        config.rabbitmq.routingKeys.passwordResetRequested,
+        config.rabbitmq.routingKeys.passwordResetCompleted,
+        'email.verification.requested'
       ]
     });
   }
@@ -364,6 +375,82 @@ class MessageHandler {
     } catch (err) {
       logger.error('Error processing user created event:', err);
       throw err;
+    }
+  }
+
+  /**
+   * Process email verification requested event
+   * @private
+   * @param {Object} data - Event data
+   * @returns {Promise<void>}
+   */
+  async processEmailVerificationRequestedEvent(data) {
+    try {
+      const { email, otpCode, userName, requestId, expiresAt } = data;
+      
+      logger.info(`Processing email verification request for ${email}`);
+
+      // Send OTP email directly using emailService
+      const emailService = require('./emailService');
+      
+      const subject = 'Email Verification - Your OTP Code';
+      const expiryTime = new Date(expiresAt).toLocaleString();
+      
+      const text = `Hi ${userName},
+
+Thank you for registering with URL Shortener.
+
+Your email verification OTP code is: ${otpCode}
+
+This code will expire at: ${expiryTime}
+
+If you didn't create an account with us, please ignore this email.
+
+Best regards,
+URL Shortener Team`;
+
+      const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #4a6ee0; margin: 0;">URL Shortener</h1>
+            <p style="color: #666; margin: 5px 0;">Email Verification</p>
+          </div>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h2 style="color: #333; margin-top: 0;">Hi ${userName},</h2>
+            <p style="color: #555; line-height: 1.6;">
+              Thank you for registering with URL Shortener. To complete your registration, please verify your email address using the OTP code below:
+            </p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <div style="background: #4a6ee0; color: white; padding: 15px 30px; border-radius: 6px; display: inline-block; font-size: 24px; font-weight: bold; letter-spacing: 3px;">
+                ${otpCode}
+              </div>
+            </div>
+            
+            <p style="color: #555; line-height: 1.6;">
+              <strong>This code will expire at:</strong> ${expiryTime}
+            </p>
+            
+            <p style="color: #555; line-height: 1.6;">
+              If you didn't create an account with us, please ignore this email.
+            </p>
+          </div>
+          
+          <div style="text-align: center; color: #666; font-size: 12px; border-top: 1px solid #eee; padding-top: 20px;">
+            <p>This is an automated message from URL Shortener Service.</p>
+            <p>Please do not reply to this email.</p>
+          </div>
+        </div>
+      `;
+
+      await emailService.sendEmail(email, subject, text, html);
+      
+      logger.info(`Email verification OTP sent to ${email}`);
+      
+    } catch (error) {
+      logger.error('Error processing email verification requested event:', error);
+      throw error;
     }
   }
 

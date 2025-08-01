@@ -85,6 +85,7 @@ const verifyOtpLimiter = rateLimit({
  *               - name
  *               - email
  *               - password
+ *               - otpCode
  *             properties:
  *               name:
  *                 type: string
@@ -97,6 +98,9 @@ const verifyOtpLimiter = rateLimit({
  *                 type: string
  *                 format: password
  *                 example: Password123!
+ *               otpCode:
+ *                 type: string
+ *                 example: "123456"
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -121,10 +125,10 @@ const verifyOtpLimiter = rateLimit({
 router.post(
   '/register',
   registerLimiter,
-  registerValidationRules,
+  verifySignupEmailValidationRules,
   validate,
   async (req, res, next) => {
-    const { name, email, password } = req.body;
+    const { name, email, password, otpCode } = req.body;
 
     try {
       // Check if user exists
@@ -132,6 +136,19 @@ router.post(
 
       if (user) {
         const error = new Error('User already exists');
+        error.statusCode = 400;
+        return next(error);
+      }
+
+      // Verify OTP code
+      const emailVerification = await EmailVerification.findValidVerification(
+        email,
+        otpCode,
+        'signup'
+      );
+
+      if (!emailVerification) {
+        const error = new Error('Invalid or expired verification code');
         error.statusCode = 400;
         return next(error);
       }
@@ -145,6 +162,10 @@ router.post(
 
       // Save user
       await user.save();
+
+      // Mark verification as used
+      emailVerification.used = true;
+      await emailVerification.save();
 
       // Create JWT payload
       const payload = {
@@ -184,6 +205,117 @@ router.post(
       });
     } catch (error) {
       console.error('Error registering user:', error);
+      if (!error.statusCode) {
+        error.statusCode = 500;
+        error.message = 'Server error';
+      }
+      next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /api/auth/register/send-otp:
+ *   post:
+ *     summary: Send registration OTP
+ *     description: Sends a verification code to the email for account registration
+ *     tags:
+ *       - Authentication
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: john@example.com
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 example: Password123!
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 expiresAt:
+ *                   type: string
+ *                   format: date-time
+ *       400:
+ *         description: Invalid input
+ *       409:
+ *         description: User already exists
+ *       429:
+ *         description: Too many OTP requests
+ *       500:
+ *         description: Server error
+ */
+router.post(
+  '/register/send-otp',
+  registerLimiter,
+  registerValidationRules,
+  validate,
+  async (req, res, next) => {
+    const { name, email, password } = req.body;
+
+    try {
+      // Check if user exists
+      const existingUser = await User.findOne({ email });
+
+      if (existingUser) {
+        const error = new Error('User already exists');
+        error.statusCode = 409;
+        return next(error);
+      }
+
+      // Generate 6-digit OTP
+      const otpCode = EmailVerification.generateOTP();
+
+      // Clean up any existing verification requests for this email
+      await EmailVerification.deleteMany({ email, type: 'signup' });
+
+      // Create new email verification
+      const emailVerification = new EmailVerification({
+        email,
+        otpCode,
+        type: 'signup',
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 minutes expiry
+      });
+      await emailVerification.save();
+
+      // Publish event to send OTP email
+      await publishEvent('email.verification.requested', {
+        email,
+        otpCode,
+        userName: name,
+        requestId: emailVerification._id.toString(),
+        expiresAt: emailVerification.expiresAt
+      });
+
+      res.json({
+        status: 'success',
+        message: 'Verification code sent to your email',
+        expiresAt: emailVerification.expiresAt
+      });
+
+    } catch (error) {
+      console.error('Error sending registration OTP:', error);
       if (!error.statusCode) {
         error.statusCode = 500;
         error.message = 'Server error';
