@@ -6,6 +6,7 @@ const logger = require('../services/logger');
 const config = require('../config/config');
 const rateLimit = require('express-rate-limit');
 const { authenticate, authenticateOptional } = require('../middleware/authenticate');
+const cacheService = require('../services/cacheService');
 
 // Rate limiter for analytics endpoints
 const analyticsLimiter = rateLimit({
@@ -48,8 +49,29 @@ const analyticsLimiter = rateLimit({
 router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res, next) => {
   try {
     const period = req.query.period || 'week';
-    let startDate;
     
+    // Check for userId from query parameters or authenticated user
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'userId query parameter is required' });
+    }
+    
+    // Generate cache key
+    const cacheKey = cacheService.generateAnalyticsKey('overview', 'all', { 
+      userId, 
+      period 
+    });
+    
+    // Try to get from cache first
+    const cachedData = await cacheService.get(cacheKey);
+    if (cachedData) {
+      logger.debug(`Serving overview data from cache for user ${userId}, period: ${period}`);
+      return res.json(cachedData);
+    }
+    
+    logger.debug(`Overview request - Period: ${period}, User ID: ${userId}`);
+    
+    let startDate;
     const now = new Date();
     
     // Set date range filter based on period
@@ -83,45 +105,31 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
     // Base query for URL stats
     let urlStatQuery = {};
     
-    // Check for userId from query parameters or authenticated user
-    const userId = req.query.userId;
-    if (!userId) {
-      return res.status(400).json({ error: 'userId query parameter is required' });
-    }
+    logger.debug(`Filtering overview for user ${userId}`);
     
-    logger.debug(`Overview request - Period: ${period}, User ID: ${userId}`);
+    // Get URL shortCodes for this user to filter click events
+    const userUrlStats = await UrlStat.find({ userId: userId }).select('shortCode');
+    logger.debug(`Found ${userUrlStats.length} URLs for user ${userId}`);
     
-    if (userId) {
-      // Add filter for URL stats by userId
-      // Try both string and ObjectId comparisons to handle different storage formats
-      logger.debug(`Filtering overview for user ${userId}`);
+    if (userUrlStats.length > 0) {
+      const userShortCodes = userUrlStats.map(stat => stat.shortCode);
+      // Filter click events by user's URLs
+      query.shortCode = { $in: userShortCodes };
+      urlStatQuery.userId = userId;
       
-      // Get URL shortCodes for this user to filter click events
-      const userUrlStats = await UrlStat.find({ userId: userId }).select('shortCode');
-      logger.debug(`Found ${userUrlStats.length} URLs for user ${userId}`);
-      
-      if (userUrlStats.length > 0) {
-        const userShortCodes = userUrlStats.map(stat => stat.shortCode);
-        // Filter click events by user's URLs
-        query.shortCode = { $in: userShortCodes };
-        urlStatQuery.userId = userId;
-        
-        logger.debug(`Filtering overview for ${userShortCodes.length} URLs: ${userShortCodes.join(', ')}`);
-      } else {
-        // If user has no URLs, return empty results
-        logger.debug(`User ${userId} has no URLs, returning empty overview`);
-        return res.json({
-          period,
-          totalClicks: 0,
-          uniqueVisitors: 0,
-          topUrls: [],
-          clicksByCountry: [],
-          clicksByDevice: [],
-          clicksByReferer: []
-        });
-      }
+      logger.debug(`Filtering overview for ${userShortCodes.length} URLs: ${userShortCodes.join(', ')}`);
     } else {
-      logger.debug('No user ID provided, returning global overview');
+      // If user has no URLs, return empty results
+      logger.debug(`User ${userId} has no URLs, returning empty overview`);
+      return res.json({
+        period,
+        totalClicks: 0,
+        uniqueVisitors: 0,
+        topUrls: [],
+        clicksByCountry: [],
+        clicksByDevice: [],
+        clicksByReferer: []
+      });
     }
     
     // Get total clicks
@@ -214,6 +222,26 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
       }))
     };
     
+    // Cache the results
+    // Use different expiry based on the period
+    let cacheExpiry;
+    switch (period) {
+      case 'day':
+        cacheExpiry = 300; // 5 minutes for day view (more frequently changing)
+        break;
+      case 'week':
+        cacheExpiry = 900; // 15 minutes for week view
+        break;
+      case 'month':
+        cacheExpiry = 1800; // 30 minutes for month view
+        break;
+      default:
+        cacheExpiry = 3600; // 1 hour for year and all views
+    }
+    
+    await cacheService.set(cacheKey, formattedData, cacheExpiry);
+    logger.debug(`Overview data cached for user ${userId}, period: ${period}`);
+    
     logger.debug(`Overview data prepared: ${totalClicks} total clicks, ${uniqueVisitors.length} unique visitors`);
     res.json(formattedData);
   } catch (error) {
@@ -243,24 +271,31 @@ router.get('/overview', analyticsLimiter, authenticateOptional, async (req, res,
 // ENDPOINT /api/analytics/summary
 router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, next) => {
   try {
-    // Base query for UrlStat
-    let urlStatQuery = {};
-    
     // Check for userId from query parameters or authenticated user
     const userId = req.query.userId;
     if (!userId) {
       return res.status(400).json({ error: 'userId query parameter is required' });
     }
     
+    // Generate cache key
+    const cacheKey = cacheService.generateAnalyticsKey('summary', 'all', { 
+      userId 
+    });
+    
+    // Try to get from cache first
+    const cachedData = await cacheService.get(cacheKey);
+    if (cachedData) {
+      logger.debug(`Serving summary data from cache for user ${userId}`);
+      return res.json(cachedData);
+    }
+    
     logger.debug(`Summary request - User ID: ${userId || 'none'}, Query: ${JSON.stringify(req.query)}`);
     
-    if (userId) {
-      // Try both string and ObjectId comparisons to handle different storage formats
-      urlStatQuery.userId = userId;
-      logger.debug(`Filtering summary for user ${userId}`);
-    } else {
-      logger.debug('No user ID provided, returning global summary');
-    }
+    // Base query for UrlStat
+    let urlStatQuery = {};
+    
+    urlStatQuery.userId = userId;
+    logger.debug(`Filtering summary for user ${userId}`);
     
     // Initialize default values to ensure we always return something
     let totalClicks = 0;
@@ -381,6 +416,10 @@ router.get('/summary', analyticsLimiter, authenticateOptional, async (req, res, 
       })) || []
     };
     
+    // Cache the results - summary data changes more frequently, so use shorter expiry
+    await cacheService.set(cacheKey, response, 600); // 10 minutes
+    logger.debug(`Summary data cached for user ${userId}`);
+    
     logger.debug(`Summary data prepared: ${JSON.stringify(response)}`);
     res.json(response);
   } catch (error) {
@@ -441,6 +480,24 @@ router.get('/urls/:shortCode', analyticsLimiter, authenticateOptional, async (re
     
     // Check for userId from query parameters or authenticated user
     const userId = req.query.userId || req.user?.id;
+    
+    // Generate cache key
+    const cacheKey = cacheService.generateAnalyticsKey(shortCode, 'details', { 
+      period 
+    });
+    
+    // Try to get from cache first
+    const cachedData = await cacheService.get(cacheKey);
+    if (cachedData) {
+      // Still verify ownership if userId provided
+      if (userId && cachedData.userId && userId !== cachedData.userId.toString()) {
+        logger.warn(`User ${userId} tried to access cached analytics for URL ${shortCode} owned by ${cachedData.userId}`);
+        return res.status(403).json({ error: 'You do not have permission to view analytics for this URL' });
+      }
+      
+      logger.debug(`Serving URL analytics from cache for ${shortCode}, period: ${period}`);
+      return res.json(cachedData);
+    }
     
     logger.debug(`URL analytics request - ShortCode: ${shortCode}, Period: ${period}, User ID: ${userId || 'none'}`);
     
@@ -588,6 +645,7 @@ router.get('/urls/:shortCode', analyticsLimiter, authenticateOptional, async (re
     const formattedData = {
       shortCode,
       originalUrl: urlStat.originalUrl,
+      userId: urlStat.userId, // Include for ownership verification on cached data
       totalClicks: totalClicks,
       uniqueVisitors: uniqueVisitors.length,
       urlCreatedAt: urlStat.createdAt || urlStat.timestamps?.createdAt,
@@ -624,6 +682,25 @@ router.get('/urls/:shortCode', analyticsLimiter, authenticateOptional, async (re
         };
       })
     };
+    
+    // Cache the results with period-based expiry
+    let cacheExpiry;
+    switch (period) {
+      case 'day':
+        cacheExpiry = 300; // 5 minutes for day view
+        break;
+      case 'week':
+        cacheExpiry = 900; // 15 minutes for week view
+        break;
+      case 'month':
+        cacheExpiry = 1800; // 30 minutes for month view
+        break;
+      default:
+        cacheExpiry = 3600; // 1 hour for year and all views
+    }
+    
+    await cacheService.set(cacheKey, formattedData, cacheExpiry);
+    logger.debug(`URL analytics cached for ${shortCode}, period: ${period}`);
     
     logger.debug(`URL analytics prepared for ${shortCode}: ${totalClicks} total clicks, ${uniqueVisitors.length} unique visitors`);
     res.json(formattedData);

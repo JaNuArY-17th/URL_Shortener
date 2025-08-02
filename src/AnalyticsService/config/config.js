@@ -14,6 +14,11 @@ const config = {
     secret: process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production',
     expiresIn: process.env.JWT_EXPIRES_IN || '24h'
   },
+  redis: {
+    uri: process.env.REDIS_URI || 'redis://localhost:6379',
+    cacheExpiry: parseInt(process.env.REDIS_CACHE_EXPIRY) || 3600, // 1 hour in seconds
+    reconnectStrategy: (retries) => Math.min(retries * 50, 2000) // reconnect strategy with backoff
+  },
   rabbitmq: {
     uri: process.env.RABBITMQ_URI || 'amqps://irnrcdfe:i8Sii2DlRiD1u2fobfw_gIuEuQa-z-4f@chimpanzee.rmq.cloudamqp.com/irnrcdfe',
     exchanges: {

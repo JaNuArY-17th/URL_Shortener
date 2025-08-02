@@ -3,6 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const logger = require('../services/logger');
 const messageHandler = require('../services/messageHandler');
+const cacheService = require('../services/cacheService');
 
 /**
  * @swagger
@@ -41,7 +42,7 @@ router.get('/', (req, res) => {
  * /api/health/deep:
  *   get:
  *     summary: Deep health check
- *     description: Check connectivity to all dependencies (MongoDB, RabbitMQ)
+ *     description: Check connectivity to all dependencies (MongoDB, RabbitMQ, Redis)
  *     tags:
  *       - Health
  *     responses:
@@ -68,6 +69,9 @@ router.get('/', (req, res) => {
  *                     rabbitmq:
  *                       type: string
  *                       example: connected
+ *                     redis:
+ *                       type: string
+ *                       example: connected
  *       500:
  *         description: Some services are not operational
  */
@@ -78,8 +82,12 @@ router.get('/deep', async (req, res) => {
   // Check RabbitMQ connection
   const rabbitStatus = messageHandler.isConnected() ? 'connected' : 'disconnected';
 
-  // Overall status
-  const overallStatus = mongoStatus === 'connected' && rabbitStatus === 'connected' ? 'ok' : 'degraded';
+  // Check Redis connection
+  const redisStatus = cacheService.isConnected() ? 'connected' : 'disconnected';
+
+  // Overall status - Redis is optional if caching is disabled
+  const requiredServicesOk = mongoStatus === 'connected' && rabbitStatus === 'connected';
+  const overallStatus = requiredServicesOk ? 'ok' : 'degraded';
 
   // HTTP status code
   const statusCode = overallStatus === 'ok' ? 200 : 500;
@@ -89,7 +97,8 @@ router.get('/deep', async (req, res) => {
     timestamp: new Date().toISOString(),
     services: {
       mongodb: mongoStatus,
-      rabbitmq: rabbitStatus
+      rabbitmq: rabbitStatus,
+      redis: redisStatus
     }
   });
 });
@@ -125,15 +134,18 @@ router.get('/deep', async (req, res) => {
  *                     heapUsed:
  *                       type: string
  *                       example: 20MB
- *                 eventStats:
+ *                 cacheStats:
  *                   type: object
  *                   properties:
- *                     processed:
+ *                     hits:
  *                       type: number
  *                       example: 1000
- *                     failed:
+ *                     misses:
  *                       type: number
- *                       example: 5
+ *                       example: 200
+ *                     hitRate:
+ *                       type: string
+ *                       example: "83.33%"
  */
 router.get('/stats', async (req, res) => {
   // System uptime
@@ -149,6 +161,9 @@ router.get('/stats', async (req, res) => {
     external: formatMemoryUsage(memoryData.external)   // V8 external memory
   };
   
+  // Get cache stats
+  const cacheStats = cacheService.getStats();
+  
   res.json({
     uptime: Math.floor(uptime),
     memory,
@@ -157,6 +172,28 @@ router.get('/stats', async (req, res) => {
       nodeVersion: process.version,
       cpuUsage: process.cpuUsage()
     },
+    cache: cacheStats,
+    timestamp: new Date().toISOString()
+  });
+});
+
+/**
+ * @swagger
+ * /api/health/cache:
+ *   get:
+ *     summary: Cache statistics
+ *     description: Get detailed Redis cache statistics
+ *     tags:
+ *       - Health
+ *     responses:
+ *       200:
+ *         description: Cache statistics
+ */
+router.get('/cache', async (req, res) => {
+  const cacheStats = cacheService.getStats();
+  
+  res.json({
+    cache: cacheStats,
     timestamp: new Date().toISOString()
   });
 });
