@@ -62,6 +62,10 @@ export default function Dashboard() {
   const { user, logout } = useAuth();
   const [url, setUrl] = useState("");
   const [expiresAt, setExpiresAt] = useState<string>("");
+  const [customAlias, setCustomAlias] = useState<string>("");
+  const [isCheckingAlias, setIsCheckingAlias] = useState(false);
+  const [aliasError, setAliasError] = useState<string>("");
+  const [aliasAvailable, setAliasAvailable] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingUrls, setIsLoadingUrls] = useState(true);
@@ -157,7 +161,64 @@ export default function Dashboard() {
     };
   }, []);
 
-  // Remove topUrls state and related functions
+  // Validate custom alias whenever it changes
+  useEffect(() => {
+    if (customAlias) {
+      validateCustomAlias();
+      setAliasAvailable(false); // Reset availability when the alias changes
+    } else {
+      setAliasError("");
+      setAliasAvailable(false);
+    }
+  }, [customAlias]);
+  
+  const validateCustomAlias = () => {
+    // Check if exactly 6 characters
+    if (customAlias.length !== 6) {
+      setAliasError("Alias must be exactly 6 characters");
+      return false;
+    }
+    
+    // Check if contains spaces or symbols
+    if (!/^[a-zA-Z0-9]*$/.test(customAlias)) {
+      setAliasError("Alias can only contain letters and numbers");
+      return false;
+    }
+
+    setAliasError("");
+    return true;
+  };
+
+  const checkAliasAvailability = async () => {
+    if (!customAlias || !validateCustomAlias()) return false;
+    
+    try {
+      setIsCheckingAlias(true);
+      // Call API to check if alias is available
+      const response = await urlAPI.checkAliasAvailability(customAlias);
+      const isAvailable = response.available;
+      
+      if (!isAvailable) {
+        setAliasError("This alias is already taken");
+      } else {
+        setAliasError(""); // Clear error if available
+        setAliasAvailable(true);
+        toast({
+          title: "Alias Available!",
+          description: `Alias "${customAlias}" is available.`,
+          variant: "default",
+        });
+      }
+      
+      return isAvailable;
+    } catch (error) {
+      console.error('Error checking alias availability:', error);
+      setAliasError("Error checking alias availability");
+      return false;
+    } finally {
+      setIsCheckingAlias(false);
+    }
+  };
   
   const fetchUrls = async () => {
     try {
@@ -249,6 +310,29 @@ export default function Dashboard() {
       return;
     }
 
+    // Validate custom alias if provided
+    if (customAlias && !validateCustomAlias()) {
+      toast({
+        title: "Invalid Alias",
+        description: aliasError,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check alias availability if provided
+    if (customAlias) {
+      const isAvailable = await checkAliasAvailability();
+      if (!isAvailable) {
+        toast({
+          title: "Alias Unavailable",
+          description: "This alias is already in use. Please choose a different one.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     setIsLoading(true);
 
     try {
@@ -256,6 +340,7 @@ export default function Dashboard() {
       const response = await urlAPI.shorten({
         originalUrl: url,
         expiresAt: expiresAt || undefined,
+        customAlias: customAlias || undefined,
       });
 
       // After successful creation, refresh the URLs list
@@ -270,6 +355,8 @@ export default function Dashboard() {
       // Reset form
       setUrl("");
       setExpiresAt("");
+      setCustomAlias("");
+      setAliasAvailable(false);
       setShowAdvanced(false);
 
       toast({
@@ -597,14 +684,56 @@ export default function Dashboard() {
               />
 
               {showAdvanced && (
-                <div className="flex gap-2 items-center">
-                  <span className="text-sm text-muted-foreground whitespace-nowrap">Expires at:</span>
-                  <Input
-                    type="datetime-local"
-                    value={expiresAt}
-                    onChange={(e) => setExpiresAt(e.target.value)}
-                    className="flex-1"
-                  />
+                <div className="space-y-4">
+                  <div className="flex gap-2 items-center">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">Expires at:</span>
+                    <Input
+                      type="datetime-local"
+                      value={expiresAt}
+                      onChange={(e) => setExpiresAt(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 items-center">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">Custom alias:</span>
+                    <div className="flex-1 relative">
+                      <Input
+                        placeholder="6 characters (letters/numbers only)"
+                        value={customAlias}
+                        onChange={(e) => setCustomAlias(e.target.value)}
+                        maxLength={6}
+                        className={`w-full ${aliasError ? 'border-red-500' : ''}`}
+                      />
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      disabled={!customAlias || Boolean(aliasError) || isCheckingAlias}
+                      onClick={checkAliasAvailability}
+                      className="whitespace-nowrap"
+                    >
+                      {isCheckingAlias ? "Checking..." : "Check availability"}
+                    </Button>
+                  </div>
+                  {aliasError && (
+                    <div className="text-xs text-red-500 mt-1 flex items-center">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      {aliasError}
+                    </div>
+                  )}
+                  {customAlias && !aliasError && !aliasAvailable && (
+                    <div className="text-xs text-green-500 mt-1 flex items-center">
+                      <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>
+                      Valid format
+                    </div>
+                  )}
+                  {aliasAvailable && (
+                    <div className="text-xs text-green-500 mt-1 flex items-center">
+                      <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>
+                      Alias available!
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -621,7 +750,7 @@ export default function Dashboard() {
 
                 <Button
                   onClick={handleShorten}
-                  disabled={isLoading}
+                  disabled={isLoading || (customAlias && Boolean(aliasError))}
                   variant="gradient"
                   size="lg"
                   className="min-w-[120px]"

@@ -93,6 +93,28 @@ services:
       - SMTP_PASS=password
       - PORT=3000
 
+  # AI Assistant Service - Node.js with Gemini MCP
+  ai-assistant-service:
+    build:
+      context: ./src/AIAssistantService
+      dockerfile: Dockerfile
+    ports:
+      - "5006:3000"
+    depends_on:
+      - rabbitmq
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-your_gemini_api_key_here}
+      - MONGODB_ANALYTICS_URI=mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/analytics?retryWrites=true&w=majority&appName=Cluster1
+      - MONGODB_REDIRECT_URI=mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/redirect?retryWrites=true&w=majority&appName=Cluster1
+      - MONGODB_NOTIFICATION_URI=mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/notification?retryWrites=true&w=majority&appName=Cluster1
+      - MONGODB_AUTH_URI=mongodb+srv://nhl170100:dHaPiWdbYDuKSnxF@cluster1.zayctcf.mongodb.net/auth?retryWrites=true&w=majority&appName=Cluster1
+      - JWT_SECRET=your_jwt_secret
+      - PORT=3000
+      - NODE_ENV=production
+      - CORS_ORIGINS=http://localhost:8080,http://localhost:3000,http://localhost:5000
+      - PRIVACY_ENABLE_USER_DATA=false
+      - PRIVACY_HASH_USER_IDS=true
+
   # Frontend Web UI - React
   web-ui:
     build:

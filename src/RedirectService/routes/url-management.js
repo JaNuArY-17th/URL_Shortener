@@ -210,6 +210,51 @@ router.get('/', authenticateOptional, async (req, res, next) => {
 
 /**
  * @swagger
+ * /api/urls/alias-check/{alias}:
+ *   get:
+ *     summary: Check alias availability
+ *     description: Check if a custom alias (shortCode) is available for use
+ *     tags:
+ *       - URL Management
+ *     parameters:
+ *       - in: path
+ *         name: alias
+ *         required: true
+ *         description: Custom alias to check availability
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Alias availability status
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 available:
+ *                   type: boolean
+ *                   description: Whether the alias is available
+ *       500:
+ *         description: Server error
+ */
+router.get('/alias-check/:alias', async (req, res, next) => {
+  try {
+    const { alias } = req.params;
+    
+    // Check if the alias already exists in the database
+    const existingUrl = await Url.findOne({ shortCode: alias });
+    
+    // Return availability status
+    res.status(200).json({
+      available: !existingUrl
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @swagger
  * /api/urls/{shortCode}:
  *   get:
  *     summary: Get URL details

@@ -199,6 +199,11 @@ export const urlAPI = {
     return response.data;
   },
   
+  checkAliasAvailability: async (alias: string) => {
+    const response = await api.get(`/api/urls/alias-check/${alias}`);
+    return response.data;
+  },
+  
   getUrls: async (page = 1, limit = 10, active?: boolean, userId?: string) => {
     const query = new URLSearchParams();
     query.append('page', page.toString());
