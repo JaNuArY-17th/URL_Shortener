@@ -202,7 +202,7 @@ async function updateClickStatistics(shortCode, visitorHash, req) {
     const redirectEventData = {
       shortCode,
       originalUrl: urlDoc.originalUrl,
-      userId: urlDoc.userId, // Include userId for real-time notifications
+      userId: urlDoc.userId, 
       visitorHash,
       timestamp: new Date().toISOString(),
       userAgent: req.headers['user-agent'] || 'unknown',
