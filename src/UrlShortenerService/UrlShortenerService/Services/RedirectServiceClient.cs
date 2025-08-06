@@ -19,7 +19,7 @@ namespace UrlShortenerService.Services
         {
             try
             {
-                var url = $"{_redirectServiceUrl}/api/urls/check-alias/{alias}";
+                var url = $"{_redirectServiceUrl}/api/urls/alias-check/{alias}";
                 _logger.LogInformation($"Checking alias availability: {alias}");
 
                 var response = await _httpClient.GetAsync(url);
