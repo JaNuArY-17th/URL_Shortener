@@ -10,7 +10,7 @@ NODE_ENV=development
 
 ## JWT Configuration
 ```
-JWT_SECRET=your-256-bit-secret-key-here-minimum-16-characters
+JWT_SECRET=your_jwt_secret
 JWT_ISSUER=auth-service
 JWT_AUDIENCE=url-shortener-api
 JWT_EXPIRY=60m

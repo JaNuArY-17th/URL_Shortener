@@ -12,6 +12,7 @@ namespace UrlShortenerService.Controllers
     public class UrlsController : ControllerBase
     {
         private readonly IShortCodeGeneratorService _shortCodeGenerator;
+        private readonly IRedirectServiceClient _redirectServiceClient;
         private readonly IEventPublisher _eventPublisher;
         private readonly RateLimitingService _rateLimitingService;
         private readonly IConfiguration _configuration;
@@ -19,12 +20,14 @@ namespace UrlShortenerService.Controllers
 
         public UrlsController(
             IShortCodeGeneratorService shortCodeGenerator,
+            IRedirectServiceClient redirectServiceClient,
             IEventPublisher eventPublisher,
             RateLimitingService rateLimitingService,
             IConfiguration configuration,
             ILogger<UrlsController> logger)
         {
             _shortCodeGenerator = shortCodeGenerator;
+            _redirectServiceClient = redirectServiceClient;
             _eventPublisher = eventPublisher;
             _rateLimitingService = rateLimitingService;
             _configuration = configuration;
@@ -62,20 +65,55 @@ namespace UrlShortenerService.Controllers
                     return BadRequest("URL is not allowed");
                 }
 
-                // Generate or validate short code
+                // Generate or validate short code with alias availability checking
                 string shortCode;
-                if (!string.IsNullOrWhiteSpace(request.CustomAlias))
+                bool isAvailable = false;
+                int maxRetries = 5;
+                int attempt = 0;
+
+                do
                 {
-                    if (!_shortCodeGenerator.IsValidCustomAlias(request.CustomAlias))
+                    attempt++;
+                    
+                    if (!string.IsNullOrWhiteSpace(request.CustomAlias))
                     {
-                        return BadRequest("Invalid custom alias. Must be 3-20 characters long and contain only letters, numbers.");
+                        if (!_shortCodeGenerator.IsValidCustomAlias(request.CustomAlias))
+                        {
+                            return BadRequest("Invalid custom alias. Must be 3-20 characters long and contain only letters, numbers.");
+                        }
+                        shortCode = request.CustomAlias;
                     }
-                    shortCode = request.CustomAlias;
-                }
-                else
+                    else
+                    {
+                        var length = _configuration.GetValue<int>("ShortCode:Length", 6);
+                        shortCode = _shortCodeGenerator.GenerateShortCode(length);
+                    }
+
+                    // Check if alias/short code is available
+                    isAvailable = await _redirectServiceClient.IsAliasAvailableAsync(shortCode);
+                    
+                    // If custom alias is not available, don't retry
+                    if (!isAvailable && !string.IsNullOrWhiteSpace(request.CustomAlias))
+                    {
+                        return Conflict("Custom alias already exists");
+                    }
+                    
+                    // If generated code is not available, retry with new code
+                    if (!isAvailable && string.IsNullOrWhiteSpace(request.CustomAlias) && attempt < maxRetries)
+                    {
+                        _logger.LogInformation($"Short code {shortCode} already exists, retrying... (attempt {attempt}/{maxRetries})");
+                        continue;
+                    }
+                    
+                    break;
+                    
+                } while (attempt < maxRetries);
+
+                // Check final result
+                if (!isAvailable)
                 {
-                    var length = _configuration.GetValue<int>("ShortCode:Length", 6);
-                    shortCode = _shortCodeGenerator.GenerateShortCode(length);
+                    _logger.LogError($"Failed to find available short code after {attempt} attempts");
+                    return StatusCode(500, "Unable to generate unique short code. Please try again.");
                 }
 
                 var createdAt = DateTime.UtcNow;
@@ -92,7 +130,7 @@ namespace UrlShortenerService.Controllers
                     UserId = request.UserId
                 };
 
-                // Publish event
+                // Publish event to RedirectService for actual URL creation
                 var urlCreatedEvent = new UrlCreatedEvent
                 {
                     ShortCode = shortCode,
@@ -106,7 +144,7 @@ namespace UrlShortenerService.Controllers
                 var routingKey = _configuration["RabbitMQ:RoutingKey"] ?? "url.created";
                 await _eventPublisher.PublishAsync(urlCreatedEvent, routingKey);
 
-                _logger.LogInformation($"Created short URL: {shortCode} for {request.OriginalUrl}");
+                _logger.LogInformation($"Successfully created short URL: {shortCode} for {request.OriginalUrl}");
 
                 return Ok(response);
             }

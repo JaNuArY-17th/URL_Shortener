@@ -12,7 +12,7 @@ const config = {
   },
   
   jwt: {
-    secret: process.env.JWT_SECRET || 'your_jwt_secret_key_change_in_production',
+    secret: process.env.JWT_SECRET || 'your_jwt_secret',
     expiresIn: process.env.JWT_EXPIRES_IN || '24h'
   },
 

@@ -6,7 +6,7 @@ const config = {
     nodeEnv: process.env.NODE_ENV || 'development'
   },
   jwt: {
-    secret: process.env.JWT_SECRET || 'your-256-bit-secret-key-here-minimum-16-characters',
+    secret: process.env.JWT_SECRET || 'your_jwt_secret',
     issuer: process.env.JWT_ISSUER || 'auth-service',
     audience: process.env.JWT_AUDIENCE || 'url-shortener-api',
     expiry: process.env.JWT_EXPIRY || '60m'

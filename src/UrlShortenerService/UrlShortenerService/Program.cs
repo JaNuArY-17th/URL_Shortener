@@ -36,6 +36,9 @@ builder.Services.AddSingleton<IShortCodeGeneratorService, ShortCodeGeneratorServ
 builder.Services.AddSingleton<IEventPublisher, RabbitMQEventPublisher>();
 builder.Services.AddSingleton<RateLimitingService>();
 
+// Register HTTP client for RedirectService communication
+builder.Services.AddHttpClient<IRedirectServiceClient, RedirectServiceClient>();
+
 // Configure CORS
 builder.Services.AddCors(options =>
 {
